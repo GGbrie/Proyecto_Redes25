@@ -1,0 +1,743 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Simulador de Protocolo - Proyecto</title>
+	<style>
+		:root{
+			--bg: #ffffff;
+			--panel: #ffffff;
+			--muted: #666;
+			--accent: #1e90ff;
+			--accent-2: #ff8c00;
+			--border: #ddd;
+			--text: #111;
+		}
+		:root.dark{
+			--bg: #0f1720;
+			--panel: #0b1220;
+			--muted: #9aa4b2;
+			--accent: #60a5fa;
+			--accent-2: #ffa94d;
+			--border: #203040;
+			--text: #e6eef9;
+		}
+		body { font-family: Inter, Arial, sans-serif; margin: 18px; background:var(--bg); color:var(--text); }
+		.container { max-width: 980px; margin: 0 auto; }
+		#result { white-space: pre-wrap; background:var(--panel); padding:12px; border:1px solid var(--border); max-height:360px; overflow:auto; color:var(--text); }
+		#status { margin-top:10px; font-weight: 600; color:var(--muted); }
+		#reassemble-area img { max-width: 400px; display:block; margin-top:8px; }
+		#stepper-controls button { margin-right: 6px; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; }
+		#stepper-controls button:hover { box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+		#step-detail { margin-top: 8px; background:var(--panel); border:1px solid var(--border); padding:10px; max-height:300px; overflow:auto; color:var(--text); }
+		#frag-list { margin-top: 8px; }
+		#phys-logs { max-height: 180px; overflow: auto; background: rgba(255,255,255,0.02); padding: 6px; color:var(--text); }
+		.active-frag { background: rgba(255,200,0,0.07); border-left:4px solid var(--accent-2); padding-left:6px; }
+		.small-muted { color:var(--muted); font-size:0.9em; }
+	</style>
+</head>
+<body>
+	<!-- ...existing header (sin controles) ... -->
+	<!-- Los controles se mostrarán más abajo (donde estaban originalmente) -->
+
+ 	<h2>Simulador de Protocolo (texto o imagen)</h2>
+ 	<form id="frm">
+		<label>Texto:</label><br>
+		<textarea name="text" rows="4" cols="60"></textarea><br><br>
+		<label>O subir imagen:</label>
+		<input type="file" name="file" accept="image/*" id="fileInput"><br><br>
+
+		<!-- Añadido: campo MTU -->
+		<label>MTU (bytes):</label>
+		<input type="number" name="mtu" id="mtu" value="50" min="1" step="1"><br>
+		<small id="limits-info" style="color:#666"></small><br><br>
+
+		<button type="submit">Procesar</button>
+	</form>
+
+	<h3>Resultado (resumen)</h3>
+	<pre id="result">Esperando acción...</pre>
+	<div id="status"></div>
+
+	<!-- Restaurado: controles en su posición original (justo antes del detalle) -->
+	<div id="stepper-controls" style="margin-top:12px;"></div>
+	<div id="process-meta" class="small-muted" style="margin-top:8px;"></div>
+
+	<!-- Área de detalle donde se mostrará la información del paso seleccionado -->
+  	<div id="step-detail" style="margin-top:8px; background:#fff; border:1px solid #ddd; padding:8px; max-height:300px; overflow:auto;"></div>
+
+ 	<script>
+	// filepath: c:\Users\DELL\Desktop\U - 2025\Redes de Computadoras I\Proyecto_Final\templates\index.html
+	const form = document.getElementById('frm');
+	const resultEl = document.getElementById('result');
+	const statusEl = document.getElementById('status');
+	const fileInput = document.getElementById('fileInput');
+
+	let lastResponse = null;
+	let stepsArr = [];
+	let currentStep = 0;
+	let playInterval = null;
+	let fragmentPage = 0;
+	const FRAGMENTS_PAGE_SIZE = 10;
+
+	// Cliente: límites (debe coincidir con servidor)
+	const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
+	const MIN_MTU = 1;
+	const MAX_MTU = 65535;
+
+	// mostrar info de límites en UI
+	const limitsInfo = document.getElementById('limits-info');
+	if (limitsInfo) {
+		limitsInfo.textContent = `Límites: archivo ≤ ${Math.round(MAX_UPLOAD_BYTES/1024)} KB, MTU entre ${MIN_MTU} y ${MAX_MTU}.`;
+	}
+
+	// Nuevo: inicializar controles para step-through
+	function initStepperControls() {
+		const container = document.getElementById('stepper-controls');
+		container.innerHTML = '';
+
+		const btnStart = document.createElement('button');
+		btnStart.type = 'button'; btnStart.textContent = 'Start';
+		btnStart.onclick = () => { showStep(0); stopAutoPlay(); };
+
+		const btnPrev = document.createElement('button');
+		btnPrev.type = 'button'; btnPrev.textContent = 'Prev';
+		btnPrev.style.marginLeft = '8px';
+		btnPrev.onclick = () => { prevStep(); stopAutoPlay(); };
+
+		const btnNext = document.createElement('button');
+		btnNext.type = 'button'; btnNext.textContent = 'Next';
+		btnNext.style.marginLeft = '8px';
+		btnNext.onclick = () => { nextStep(); stopAutoPlay(); };
+
+		const btnPlay = document.createElement('button');
+		btnPlay.type = 'button'; btnPlay.textContent = 'Play';
+		btnPlay.style.marginLeft = '8px';
+		btnPlay.onclick = () => { togglePlay(); };
+
+		const info = document.createElement('span');
+		info.id = 'step-info';
+		info.style.marginLeft = '12px';
+		info.textContent = '';
+
+		container.appendChild(btnStart);
+		container.appendChild(btnPrev);
+		container.appendChild(btnNext);
+		container.appendChild(btnPlay);
+		container.appendChild(info);
+	}
+
+	function updateStepInfo() {
+		const info = document.getElementById('step-info');
+		if (!info) return;
+		info.textContent = `Paso ${currentStep+1}/${stepsArr.length} - ${stepsArr[currentStep] ? stepsArr[currentStep].layer : ''}`;
+	}
+
+	function showStep(idx) {
+		if (!stepsArr || stepsArr.length === 0) return;
+		if (idx < 0) idx = 0;
+		if (idx >= stepsArr.length) idx = stepsArr.length -1;
+		currentStep = idx;
+		fragmentPage = 0;
+		updateStepInfo();
+
+		const s = stepsArr[currentStep];
+		const detail = document.getElementById('step-detail');
+		detail.innerHTML = ''; // clear
+
+		const h = document.createElement('div');
+		h.innerHTML = `<strong>${s.layer}</strong>`;
+		detail.appendChild(h);
+
+		// mostrar info o details
+		if (s.details) {
+			// Presentation: show type/filename/bytes
+			if (s.layer.toLowerCase().includes('presentation')) {
+				const d = s.details;
+				const ul = document.createElement('div');
+				ul.innerHTML = `<div>type: ${d.type || ''}</div><div>filename: ${d.filename || ''}</div><div>raw_bytes_len: ${d.raw_bytes_len || 0}</div><div>encoding: ${d.encoding || ''}</div>`;
+				detail.appendChild(ul);
+			}
+			// Transport: show fragments headers paginated
+			else if (s.layer.toLowerCase().includes('transport')) {
+				const d = s.details;
+				const info = document.createElement('div');
+				info.innerHTML = `<div>requested_mtu: ${d.requested_mtu || d.mtu}</div><div>total_len: ${d.total_len || 0}</div><div>fragments_count: ${d.fragments_count || (d.fragments && d.fragments.length) || 0}</div>`;
+				detail.appendChild(info);
+
+				const listWrap = document.createElement('div');
+				listWrap.id = 'frag-list';
+				listWrap.style.marginTop = '8px';
+				detail.appendChild(listWrap);
+
+				renderFragmentPage(d.fragments || []);
+			}
+			// Network: list basic headers count
+			else if (s.layer.toLowerCase().includes('network')) {
+				const d = s.details;
+				detail.appendChild(document.createElement('div')).textContent = `network_fragments: ${(d.fragments_with_network_header && d.fragments_with_network_header.length) || 0}`;
+			}
+			// Physical: animate logs preview
+			else if (s.layer.toLowerCase().includes('physical')) {
+				const d = s.details;
+				const logsBox = document.createElement('div');
+				logsBox.id = 'phys-logs';
+				logsBox.style.maxHeight = '180px';
+				logsBox.style.overflow = 'auto';
+				logsBox.style.background = '#fafafa';
+				logsBox.style.padding = '6px';
+				detail.appendChild(logsBox);
+
+				// animate logs sequentially (limit to 200 visible)
+				animatePhysicalLogs(d.logs || []);
+			}
+		} else {
+			detail.appendChild(document.createElement('div')).textContent = JSON.stringify(s.info || '');
+		}
+	}
+
+	// resaltar fragmentos y permitir seleccionar
+	function renderFragmentPage(fragments) {
+		const wrap = document.getElementById('frag-list');
+		if (!wrap) return;
+		wrap.innerHTML = '';
+		const total = fragments.length;
+		const start = fragmentPage * FRAGMENTS_PAGE_SIZE;
+		const page = fragments.slice(start, start + FRAGMENTS_PAGE_SIZE);
+
+		const nav = document.createElement('div');
+		nav.style.marginBottom = '6px';
+		nav.innerHTML = `Mostrando fragments ${start+1} - ${Math.min(start+page.length, total)} de ${total}`;
+		wrap.appendChild(nav);
+
+		const ul = document.createElement('ul');
+		ul.style.marginTop = '6px';
+		for (let f of page) {
+			const li = document.createElement('li');
+			const hdr = f.header || {};
+			li.textContent = `fragment ${hdr.transport_seq || '?'} / ${hdr.transport_total || '?'} len=${hdr.transport_len || '?'}`;
+			li.style.cursor = 'pointer';
+			li.onclick = () => {
+				// marcar activo y mostrar payload info (sin base64)
+				Array.from(ul.children).forEach(ch=>ch.classList.remove('active-frag'));
+				li.classList.add('active-frag');
+				// opcional: mostrar payload size / preview
+				const preview = document.createElement('div');
+				preview.textContent = `Payload bytes: ${hdr.transport_len || 0}`;
+				const existingPreview = document.getElementById('frag-preview');
+				if (existingPreview) existingPreview.remove();
+				preview.id = 'frag-preview';
+				wrap.appendChild(preview);
+			};
+			ul.appendChild(li);
+		}
+		wrap.appendChild(ul);
+
+		// pagination controls
+		const controls = document.createElement('div');
+		controls.style.marginTop = '6px';
+		const prev = document.createElement('button');
+		prev.type = 'button'; prev.textContent = 'Prev page';
+		prev.onclick = () => { if (fragmentPage > 0) { fragmentPage--; renderFragmentPage(fragments); } };
+		const next = document.createElement('button');
+		next.type = 'button'; next.textContent = 'Next page';
+		next.style.marginLeft = '6px';
+		next.onclick = () => { if ((fragmentPage+1)*FRAGMENTS_PAGE_SIZE < total) { fragmentPage++; renderFragmentPage(fragments); } };
+		controls.appendChild(prev); controls.appendChild(next);
+		wrap.appendChild(controls);
+
+		// marcar primer fragment por defecto
+		if (ul.children.length>0) {
+			ul.children[0].classList.add('active-frag');
+		}
+	}
+
+	// animar logs secuencialmente y mover packet for each log
+	function animatePhysicalLogs(logs) {
+		const box = document.getElementById('phys-logs');
+		if (!box) return;
+		box.innerHTML = '';
+		let i = 0;
+		const maxShow = 200;
+		const timer = setInterval(() => {
+			if (i >= logs.length || i >= maxShow) { clearInterval(timer); return; }
+			const p = document.createElement('div');
+			p.textContent = logs[i];
+			box.appendChild(p);
+			// keep scroll at bottom
+			box.scrollTop = box.scrollHeight;
+			i++;
+		}, 6); // fast stream; adjust if needed
+	}
+
+	function nextStep() { showStep(Math.min(currentStep+1, stepsArr.length-1)); stopAutoPlayIfEnd(); }
+	function prevStep() { showStep(Math.max(currentStep-1, 0)); stopAutoPlay(); }
+
+	// Helper to sync Play/Pause label on static button and dynamic controls
+	function updatePlayButtonLabel() {
+		const staticBtn = document.getElementById('btnPlay');
+		if (staticBtn) staticBtn.textContent = playInterval ? 'Pause' : 'Play';
+		// if dynamic control in #stepper-controls exists (created by initStepperControls), update it too
+		const dyn = Array.from(document.querySelectorAll('#stepper-controls button')).find(b => b.textContent === 'Play' || b.textContent === 'Pause');
+		if (dyn) dyn.textContent = playInterval ? 'Pause' : 'Play';
+	}
+
+	// Ajustar togglePlay para actualizar etiqueta inmediatamente
+	function togglePlay() {
+		const btn = Array.from(document.querySelectorAll('#stepper-controls button')).find(b=>b.textContent==='Play' || b.textContent==='Pause');
+		if (playInterval) {
+			stopAutoPlay();
+			if (btn) btn.textContent = 'Play';
+		} else {
+			if (btn) btn.textContent = 'Pause';
+			playInterval = setInterval(()=> {
+				if (currentStep >= stepsArr.length-1) { stopAutoPlay(); return; }
+				nextStep();
+			}, 700);
+		}
+		// sync static button label
+		updatePlayButtonLabel();
+	}
+
+	function stopAutoPlay() {
+		if (playInterval) { clearInterval(playInterval); playInterval = null; }
+		// ensure labels updated
+		updatePlayButtonLabel();
+		const btn = Array.from(document.querySelectorAll('#stepper-controls button')).find(b=>b.textContent==='Pause');
+		if (btn) btn.textContent = 'Play';
+	}
+	function stopAutoPlayIfEnd() {
+		if (currentStep >= stepsArr.length-1) stopAutoPlay();
+	}
+
+	// Reemplazar la sección donde antes se mostraba JSON completo:
+	async function handleProcessResponseData(data) {
+		lastResponse = data;
+		// mostrar resumen (mantener pequeño)
+		let lines = [];
+		const steps = data.steps || [];
+		for (let s of steps) {
+			lines.push(`- ${s.layer || 'Layer'}:`);
+			if (s.details) {
+				if (s.layer.toLowerCase().includes('presentation')) {
+					const d = s.details;
+					if (d.type) lines.push(`    type: ${d.type}`);
+					if (d.filename) lines.push(`    filename: ${d.filename}`);
+					if (d.raw_bytes_len !== undefined) lines.push(`    raw_bytes_len: ${d.raw_bytes_len}`);
+					if (d.encoding) lines.push(`    encoding: ${d.encoding}`);
+				} else if (s.layer.toLowerCase().includes('transport')) {
+					const d = s.details;
+					lines.push(`    requested_mtu: ${d.requested_mtu || d.mtu}`);
+					lines.push(`    total_len: ${d.total_len || 0}`);
+					lines.push(`    fragments_count: ${d.fragments_count || (d.fragments && d.fragments.length) || 0}`);
+					if (Array.isArray(d.fragments) && d.fragments.length > 0) {
+						for (let f of d.fragments.slice(0, 10)) {
+							if (f.header) lines.push(`      fragment ${f.header.transport_seq}/${f.header.transport_total} len=${f.header.transport_len}`);
+						}
+						if (d.fragments.length > 10) lines.push(`      ... ${d.fragments.length - 10} fragments omitted`);
+					}
+				} else if (s.layer.toLowerCase().includes('network')) {
+					const d = s.details;
+					lines.push(`    network_fragments: ${(d.fragments_with_network_header && d.fragments_with_network_header.length) || 0}`);
+				} else if (s.layer.toLowerCase().includes('physical')) {
+					const d = s.details;
+					lines.push(`    logs: ${(d.logs && d.logs.length) || 0} entries`);
+				}
+			}
+		}
+		resultEl.textContent = lines.join('\n');
+
+		// render buttons and controls
+		renderDownloadJsonButton(data);
+		renderReassembleButtonIfAvailable(data);
+
+		// mostrar process_id area si existe (ahora recibe todo el objeto data)
+		if (data.process_id) renderProcessIdArea(data);
+
+		// initialize stepper structures and controls
+		stepsArr = data.steps || [];
+		if (stepsArr.length > 0) {
+			initStepperControls();
+			showStep(0);
+		}
+	}
+
+	function renderDownloadJsonButton(data) {
+		// quitar botón anterior si existe
+		const old = document.getElementById('download-json-btn');
+		if (old) old.remove();
+
+		const btn = document.createElement('button');
+		btn.id = 'download-json-btn';
+		btn.type = 'button';
+		btn.textContent = 'Descargar JSON completo';
+		btn.style.marginLeft = '8px';
+		btn.onclick = () => {
+			const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'process-result.json';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		};
+		// insert after resultEl
+		resultEl.parentNode.insertBefore(btn, resultEl.nextSibling);
+	}
+
+	// Nuevo: mostrar process_id y botones para acciones por id + contador regresivo
+	function renderProcessIdArea(data) {
+		const containerId = 'process-meta';
+		const container = document.getElementById(containerId);
+		container.innerHTML = '';
+		if (!data || !data.process_id) return;
+		const pid = data.process_id;
+		const expiresAt = data.expires_at; // epoch seconds (si el servidor lo provee)
+
+		const p = document.createElement('div');
+		p.textContent = `process_id: ${pid}`;
+		p.style.fontWeight = 'bold';
+		p.style.marginBottom = '6px';
+
+		// contador regresivo
+		const countdown = document.createElement('span');
+		countdown.id = 'expires-countdown';
+		countdown.style.marginLeft = '12px';
+		countdown.style.fontWeight = 'normal';
+		p.appendChild(countdown);
+
+		// limpiar intervalos previos
+		if (window._processCountdownInterval) {
+			clearInterval(window._processCountdownInterval);
+			window._processCountdownInterval = null;
+		}
+
+		// iniciar contador (si expiresAt está definido)
+		if (expiresAt) {
+			function fmt(secs) {
+				const h = Math.floor(secs / 3600);
+				const m = Math.floor((secs % 3600) / 60);
+				const s = secs % 60;
+				if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+				return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+			}
+			function update() {
+				const secs = Math.max(0, Math.floor(expiresAt - (Date.now()/1000)));
+				if (secs <= 0) {
+					countdown.textContent = '(expirado)';
+					clearInterval(window._processCountdownInterval);
+					window._processCountdownInterval = null;
+				} else {
+					countdown.textContent = `(expira en ${fmt(secs)})`;
+				}
+			}
+			update();
+			window._processCountdownInterval = setInterval(update, 1000);
+		}
+
+		const linkResult = document.createElement('a');
+		linkResult.href = `/result/${pid}`;
+		linkResult.textContent = 'Ver resultado (JSON)';
+		linkResult.target = '_blank';
+		linkResult.style.marginRight = '8px';
+
+		const btnDownloadId = document.createElement('button');
+		btnDownloadId.type = 'button';
+		btnDownloadId.textContent = 'Descargar por ID';
+		btnDownloadId.style.marginLeft = '8px';
+		btnDownloadId.onclick = async () => {
+			statusEl.textContent = 'Descargando por ID...';
+			try {
+				const r = await fetch(`/download/${pid}`);
+				if (!r.ok) {
+					const err = await r.json().catch(()=>({error:'unknown'}));
+					statusEl.textContent = `Error HTTP ${r.status}`;
+					resultEl.textContent = JSON.stringify(err, null, 2);
+					return;
+				}
+				const blob = await r.blob();
+				let filename = 'reassembled.bin';
+				const cd = r.headers.get('content-disposition') || '';
+				const m = cd.match(/filename="?(.*?)"?($|;)/);
+				if (m && m[1]) filename = m[1];
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+				URL.revokeObjectURL(url);
+				statusEl.textContent = `Descarga iniciada: ${filename}`;
+			} catch (err) {
+				statusEl.textContent = 'Error en descarga por ID (ver consola)';
+				console.error(err);
+			}
+		};
+
+		container.appendChild(p);
+		container.appendChild(linkResult);
+		container.appendChild(btnDownloadId);
+	}
+
+	form.removeEventListener && form.removeEventListener('submit', ()=>{}); // no-op safe
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		resultEl.textContent = 'Procesando...';
+		statusEl.textContent = '';
+
+		// validar cliente: MTU y tamaño de archivo
+		const mtuEl = document.getElementById('mtu');
+		let mtuVal = parseInt(mtuEl ? mtuEl.value : '50') || 50;
+		let mtuAdjusted = false;
+		if (mtuVal < MIN_MTU) { mtuVal = MIN_MTU; mtuAdjusted = true; }
+		if (mtuVal > MAX_MTU) { mtuVal = MAX_MTU; mtuAdjusted = true; }
+		if (mtuAdjusted) {
+			statusEl.textContent = `MTU ajustado a rango [${MIN_MTU},${MAX_MTU}] → ${mtuVal}`;
+			if (mtuEl) mtuEl.value = mtuVal;
+		}
+
+		// Construir FormData manualmente para evitar enviar file vacío
+		const fd = new FormData();
+		const text = form.elements['text'].value || '';
+		fd.append('text', text);
+
+		// Añadir archivo solo si hay uno seleccionado y su tamaño > 0; validar tamaño
+		if (fileInput && fileInput.files && fileInput.files.length > 0) {
+			const f = fileInput.files[0];
+			if (f && f.size > 0) {
+				if (f.size > MAX_UPLOAD_BYTES) {
+					statusEl.textContent = `Archivo demasiado grande (${Math.round(f.size/1024)} KB). Límite ${Math.round(MAX_UPLOAD_BYTES/1024)} KB.`;
+					resultEl.textContent = 'Cancelado: archivo demasiado grande.';
+					return;
+				}
+				fd.append('file', f, f.name);
+			}
+		}
+
+		fd.append('mtu', mtuVal.toString());
+
+		try {
+			const res = await fetch('/process', { method: 'POST', body: fd });
+			const ct = res.headers.get('content-type') || '';
+
+			if (!res.ok) {
+				if (ct.includes('application/json')) {
+					const err = await res.json();
+					resultEl.textContent = JSON.stringify(err, null, 2);
+					statusEl.textContent = `Error HTTP ${res.status}`;
+				} else {
+					const txt = await res.text();
+					resultEl.textContent = txt;
+					statusEl.textContent = `Error HTTP ${res.status} (respuesta no JSON)`;
+				}
+				return;
+			}
+
+			if (ct.includes('application/json')) {
+				const data = await res.json();
+				// mostrar resumen y no el JSON completo
+				handleProcessResponseData(data);
+			} else {
+				const txt = await res.text();
+				resultEl.textContent = txt;
+				statusEl.textContent = 'Respuesta no JSON recibida';
+			}
+		} catch (err) {
+			resultEl.textContent = String(err);
+			statusEl.textContent = 'Fetch error (ver consola)';
+			console.error(err);
+		}
+	});
+
+	// Ajustes en renderReassembleButtonIfAvailable: evitar añadir JSON grande al DOM
+	function renderReassembleButtonIfAvailable(data) {
+		// limpiar cualquier control anterior
+		const existing = document.getElementById('reassemble-area');
+		if (existing) existing.remove();
+
+		// buscar fragments en respuesta: steps[2].details.fragments
+		try {
+			const steps = data.steps || [];
+			const transportStep = steps[2] && steps[2].details;
+			const fragments = transportStep && transportStep.fragments;
+			if (!Array.isArray(fragments) || fragments.length === 0) return;
+
+			const area = document.createElement('div');
+			area.id = 'reassemble-area';
+			area.style.marginTop = '10px';
+
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.textContent = 'Reensamblar en destino';
+			btn.onclick = async () => {
+				statusEl.textContent = 'Reensamblando...';
+				const pres = steps[1] && steps[1].details;
+				const type = pres && pres.type ? pres.type : 'text';
+				const filename = pres && pres.filename ? pres.filename : undefined;
+
+				const body = { fragments: fragments, type: type };
+				if (filename) body.filename = filename;
+
+				try {
+					const r = await fetch('/reassemble', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(body)
+					});
+					if (!r.ok) {
+						const err = await r.json().catch(()=>({error:'unknown'}));
+						resultEl.textContent = JSON.stringify(err, null, 2);
+						statusEl.textContent = `Error HTTP ${r.status}`;
+						return;
+					}
+					const resp = await r.json();
+
+					// mostrar resultado reensamblado sin imprimir base64 crudo
+					// borrar área anterior de resultados reensamblado
+					const prev = document.getElementById('reassembled-result');
+					if (prev) prev.remove();
+					const resArea = document.createElement('div');
+					resArea.id = 'reassembled-result';
+					resArea.style.marginTop = '8px';
+
+					if (resp.type === 'text') {
+						const p = document.createElement('pre');
+						p.textContent = resp.text;
+						resArea.appendChild(p);
+						statusEl.textContent = `Reensamblado: ${resp.size} bytes (texto)`;
+					} else if (resp.type === 'image' || resp.type === 'binary') {
+						// mostrar imagen si viene como base64
+						if (resp.payload_b64) {
+							const img = document.createElement('img');
+							img.src = 'data:image/*;base64,' + resp.payload_b64;
+							resArea.appendChild(img);
+						}
+						// enlace de descarga (no mostrar base64)
+						const a = document.createElement('a');
+						a.textContent = 'Descargar archivo reensamblado';
+						a.href = 'data:application/octet-stream;base64,' + (resp.payload_b64 || '');
+						a.download = resp.filename || 'reassembled.bin';
+						a.style.display = 'inline-block';
+						a.style.marginTop = '8px';
+						resArea.appendChild(a);
+						statusEl.textContent = `Reensamblado: ${resp.size} bytes (binario)`;
+					} else {
+						// mostrar objeto de respuesta resumido
+						const p = document.createElement('pre');
+						p.textContent = JSON.stringify(resp, null, 2);
+						resArea.appendChild(p);
+						statusEl.textContent = 'Resultado recibido';
+					}
+
+					area.appendChild(resArea);
+
+					// dentro de renderReassembleButtonIfAvailable, después de crear el enlace a (data:URI)
+					// agregar botón para descarga por stream
+					const streamBtn = document.createElement('button');
+					streamBtn.type = 'button';
+					streamBtn.textContent = 'Descargar (stream)';
+					streamBtn.style.marginLeft = '8px';
+					streamBtn.onclick = async () => {
+						statusEl.textContent = 'Descargando (stream)...';
+						try {
+							const r2 = await fetch('/download', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify(body)
+							});
+							if (!r2.ok) {
+								const err = await r2.json().catch(()=>({error:'unknown'}));
+								statusEl.textContent = `Error HTTP ${r2.status}`;
+								resultEl.textContent = JSON.stringify(err, null, 2);
+								return;
+							}
+							// obtener blob y filename desde header
+							const blob = await r2.blob();
+							let filename = 'reassembled.bin';
+							const cd = r2.headers.get('content-disposition') || '';
+							const m = cd.match(/filename="?(.*?)"?($|;)/);
+							if (m && m[1]) filename = m[1];
+							const url = URL.createObjectURL(blob);
+							const a2 = document.createElement('a');
+							a2.href = url;
+							a2.download = filename;
+							document.body.appendChild(a2);
+							a2.click();
+							a2.remove();
+							URL.revokeObjectURL(url);
+							statusEl.textContent = `Descarga iniciada: ${filename}`;
+						} catch (err) {
+							statusEl.textContent = 'Error en descarga (ver consola)';
+							console.error(err);
+						}
+					};
+					area.appendChild(streamBtn);
+				} catch (err) {
+					statusEl.textContent = 'Fetch error en reensamblado';
+					console.error(err);
+				}
+			};
+
+			area.appendChild(btn);
+			document.body.insertBefore(area, statusEl.nextSibling);
+		} catch (err) {
+			console.error('renderReassemble error', err);
+		}
+	}
+
+	// Enlazar botones estáticos con las funciones existentes si están definidas
+	(function attachStaticStepperHandlers(){
+		const start = document.getElementById('btnStart');
+		const prev = document.getElementById('btnPrev');
+		const next = document.getElementById('btnNext');
+		const play = document.getElementById('btnPlay');
+		if (start) start.addEventListener('click', () => { try { showStep(0); stopAutoPlay(); } catch(e){} });
+		if (prev) prev.addEventListener('click', () => { try { prevStep(); stopAutoPlay(); } catch(e){} });
+		if (next) next.addEventListener('click', () => { try { nextStep(); stopAutoPlay(); } catch(e){} });
+		if (play) play.addEventListener('click', () => { try { togglePlay(); } catch(e){} });
+	})();
+
+	// Bind static controls AFTER functions are defined
+	// Theme toggle
+	function toggleTheme() {
+		const root = document.documentElement;
+		if (root.classList.contains('dark')) {
+			root.classList.remove('dark');
+		} else {
+			root.classList.add('dark');
+		}
+	}
+
+	// At the end of the script we attach handlers to ensure functions exist.
+	// (See the block near the end of this <script> that performs the binding.)
+ 	</script>
+
+	<script>
+	// Binding static buttons after all functions are defined
+	(function bindControlsAtEnd(){
+		// wait microtick to ensure earlier script executed
+		setTimeout(()=> {
+			const start = document.getElementById('btnStart');
+			const prev = document.getElementById('btnPrev');
+			const next = document.getElementById('btnNext');
+			const play = document.getElementById('btnPlay');
+			const theme = document.getElementById('btnTheme');
+			if (start) start.addEventListener('click', () => { try { showStep(0); stopAutoPlay(); } catch(e){} });
+			if (prev) prev.addEventListener('click', () => { try { prevStep(); stopAutoPlay(); } catch(e){} });
+			if (next) next.addEventListener('click', () => { try { nextStep(); stopAutoPlay(); } catch(e){} });
+			if (play) play.addEventListener('click', () => { try {
+				togglePlay();
+				// sync button text with current state
+				play.textContent = playInterval ? 'Pause' : 'Play';
+			} catch(e){} });
+			if (theme) theme.addEventListener('click', () => { try { toggleTheme(); } catch(e){} });
+			// ensure initial label
+			updatePlayButtonLabel();
+		}, 0);
+	})();
+	</script>
+</body>
+</html>
