@@ -4,43 +4,170 @@
 	<meta charset="utf-8">
 	<title>Simulador de Protocolo - Proyecto</title>
 	<style>
-		:root{
-			--bg: #ffffff;
-			--panel: #ffffff;
-			--muted: #666;
-			--accent: #1e90ff;
-			--accent-2: #ff8c00;
-			--border: #ddd;
-			--text: #111;
-		}
-		:root.dark{
-			--bg: #0f1720;
-			--panel: #0b1220;
-			--muted: #9aa4b2;
-			--accent: #60a5fa;
-			--accent-2: #ffa94d;
-			--border: #203040;
-			--text: #e6eef9;
-		}
-		body { font-family: Inter, Arial, sans-serif; margin: 18px; background:var(--bg); color:var(--text); }
-		.container { max-width: 980px; margin: 0 auto; }
-		#result { white-space: pre-wrap; background:var(--panel); padding:12px; border:1px solid var(--border); max-height:360px; overflow:auto; color:var(--text); }
-		#status { margin-top:10px; font-weight: 600; color:var(--muted); }
-		#reassemble-area img { max-width: 400px; display:block; margin-top:8px; }
-		#stepper-controls button { margin-right: 6px; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; }
-		#stepper-controls button:hover { box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
-		#step-detail { margin-top: 8px; background:var(--panel); border:1px solid var(--border); padding:10px; max-height:300px; overflow:auto; color:var(--text); }
-		#frag-list { margin-top: 8px; }
-		#phys-logs { max-height: 180px; overflow: auto; background: rgba(255,255,255,0.02); padding: 6px; color:var(--text); }
-		.active-frag { background: rgba(255,200,0,0.07); border-left:4px solid var(--accent-2); padding-left:6px; }
-		.small-muted { color:var(--muted); font-size:0.9em; }
-	</style>
+	:root{
+		--bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
+		--panel: #ffffffee;
+		--muted: #496dac;
+		--accent: #0c7ff1;
+		--accent-2: #0658a5;
+		--border: #b5c9e6;
+		--text: #0d1b2a;
+	}
+
+	:root.dark{
+		--bg: linear-gradient(135deg, #0f1720, #1e2a3a);
+		--panel: #162132;
+		--muted: #8fa3c0;
+		--accent: #60a5fa;
+		--accent-2: #4d9eff;
+		--border: #2c3e50;
+		--text: #e6eef9;
+	}
+
+	body {
+		font-family: 'Inter', Arial, sans-serif;
+		margin: 0;
+		padding: 24px;
+		background: var(--bg);
+		color: var(--text);
+		min-height: 100vh;
+	}
+
+	h2, h3 {
+		text-align: center;
+		color: var(--accent);
+		margin-bottom: 28px;
+		font-size: 28px; 
+		font-weight: 700;
+	}
+
+	.container {
+		max-width: 980px;
+		margin: 0 auto;
+		background: var(--panel);
+		padding: 24px;
+		border-radius: 12px;
+		box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+	}
+
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		margin-bottom: 24px;
+	}
+
+	label {
+		font-weight: 600;
+		color: var(--text);
+	}
+
+	textarea, input[type="number"], input[type="file"] {
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 8px;
+		font-size: 14px;
+		width: 100%;
+		box-sizing: border-box;
+		background: #f8faff;
+	}
+
+	button {
+		background: var(--accent);
+		color: white;
+		padding: 8px 14px;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		font-size: 14px;
+		transition: background 0.3s ease, transform 0.1s ease;
+	}
+
+	button:hover {
+		background: #1478d4;
+	}
+
+	button:active {
+		transform: scale(0.98);
+	}
+
+	pre#result {
+		white-space: pre-wrap;
+		background: var(--panel);
+		padding: 12px;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		max-height: 360px;
+		overflow: auto;
+		color: var(--text);
+		box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
+	}
+
+	#stepper-controls button {
+		background: white;
+		color: var(--accent);
+		border: 1px solid var(--border);
+		padding: 6px 10px;
+		margin-right: 6px;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.25s ease;
+	}
+
+	#stepper-controls button:hover {
+		background: var(--accent);
+		color: white;
+		box-shadow: 0 2px 6px rgba(30,144,255,0.3);
+	}
+
+	#step-detail {
+		margin-top: 8px;
+		background: var(--panel);
+		border: 1px solid var(--border);
+		padding: 10px;
+		max-height: 300px;
+		overflow: auto;
+		border-radius: 8px;
+	}
+
+	#frag-list ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	#frag-list li {
+		padding: 4px 6px;
+		margin-bottom: 4px;
+		background: #f0f7ff;
+		border-radius: 4px;
+		border: 1px solid #d0e2ff;
+	}
+
+	#frag-list li.active-frag {
+		background: #d9ebff;
+		border-left: 4px solid var(--accent);
+		font-weight: 600;
+	}
+
+	.small-muted {
+		color: var(--muted);
+		font-size: 0.9em;
+	}
+
+	#phys-logs {
+		background: #f8fbff;
+		border-radius: 6px;
+		padding: 6px;
+		border: 1px solid #d5e4f9;
+	}
+</style>
 </head>
 <body>
 	<!-- ...existing header (sin controles) ... -->
 	<!-- Los controles se mostrarán más abajo (donde estaban originalmente) -->
 
- 	<h2>Simulador de Protocolo (texto o imagen)</h2>
+ 	<h2>Simulador de Protocolo</h2>
  	<form id="frm">
 		<label>Texto:</label><br>
 		<textarea name="text" rows="4" cols="60"></textarea><br><br>
@@ -55,7 +182,7 @@
 		<button type="submit">Procesar</button>
 	</form>
 
-	<h3>Resultado (resumen)</h3>
+	<h3>Resultado</h3>
 	<pre id="result">Esperando acción...</pre>
 	<div id="status"></div>
 
