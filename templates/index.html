@@ -167,12 +167,41 @@
 	<!-- ...existing header (sin controles) ... -->
 	<!-- Los controles se mostrarán más abajo (donde estaban originalmente) -->
 
- 	<h2>Simulador de Protocolo</h2>
- 	<form id="frm">
+	<h2>Simulador de Protocolo</h2>
+    <form id="frm">
 		<label>Texto:</label><br>
 		<textarea name="text" rows="4" cols="60"></textarea><br><br>
 		<label>O subir imagen:</label>
 		<input type="file" name="file" accept="image/*" id="fileInput"><br><br>
+		<div class="row">
+    <label for="transmission_type">Tipo de transmisión</label>
+    <select id="transmission_type" name="transmission_type">
+    <option value="unicast" selected>Unicast</option>
+    <option value="broadcast">Broadcast</option>
+    <option value="multicast">Multicast</option>
+    </select>
+</div>
+<div id="deliveries-panel" style="display:none; margin-top:1rem;">
+    <label for="deliveries_select">Entrega (destino):</label>
+    <select id="deliveries_select"></select>
+</div>
+
+<div class="row">
+    <label for="src_ip">IP Origen</label>
+    <input id="src_ip" name="src_ip" type="text" value="10.0.0.1">
+</div>
+
+<div class="row" id="row-dst-ip">
+    <label for="dst_ip">IP Destino</label>
+    <input id="dst_ip" name="dst_ip" type="text" value="10.0.0.2">
+</div>
+
+<div class="row" id="row-dst-list" style="display:none;">
+    <label for="dst_list">Destinos (multicast)</label>
+    <input id="dst_list" name="dst_list" type="text" placeholder="10.0.0.2, 10.0.0.3, 10.0.0.4">
+    <small>Sepáralos por comas.</small>
+</div>
+
 
 		<!-- Añadido: campo MTU -->
 		<label>MTU (bytes):</label>
@@ -191,9 +220,9 @@
 	<div id="process-meta" class="small-muted" style="margin-top:8px;"></div>
 
 	<!-- Área de detalle donde se mostrará la información del paso seleccionado -->
-  	<div id="step-detail" style="margin-top:8px; background:#fff; border:1px solid #ddd; padding:8px; max-height:300px; overflow:auto;"></div>
+    <div id="step-detail" style="margin-top:8px; background:#fff; border:1px solid #ddd; padding:8px; max-height:300px; overflow:auto;"></div>
 
- 	<script>
+    <script>
 	// filepath: c:\Users\DELL\Desktop\U - 2025\Redes de Computadoras I\Proyecto_Final\templates\index.html
 	const form = document.getElementById('frm');
 	const resultEl = document.getElementById('result');
@@ -840,7 +869,67 @@
 
 	// At the end of the script we attach handlers to ensure functions exist.
 	// (See the block near the end of this <script> that performs the binding.)
- 	</script>
+    </script>
+    <script>
+        const selType = document.getElementById('transmission_type');
+        const rowDstIp = document.getElementById('row-dst-ip');
+        const rowDstList = document.getElementById('row-dst-list');
+        const dstIpInput = document.getElementById('dst_ip');
+
+function refreshTransmissionUI() {
+        const t = selType.value;
+    if (t === 'unicast') {
+    rowDstIp.style.display = '';
+    rowDstList.style.display = 'none';
+    dstIpInput.value = dstIpInput.value || '10.0.0.2';
+    } else if (t === 'broadcast') {
+    rowDstIp.style.display = '';
+    rowDstList.style.display = 'none';
+    dstIpInput.value = '255.255.255.255';
+    } else {
+    rowDstIp.style.display = 'none';
+    rowDstList.style.display = '';
+    }
+}
+selType.addEventListener('change', refreshTransmissionUI);
+document.addEventListener('DOMContentLoaded', refreshTransmissionUI);
+</script>
+<script>
+let currentPid = null;
+let deliveriesSummary = [];
+
+async function onProcessComplete(respJson) {
+    currentPid = respJson.pid;
+    deliveriesSummary = respJson.deliveries_summary || [];
+
+    const panel = document.getElementById('deliveries-panel');
+    const select = document.getElementById('deliveries_select');
+    select.innerHTML = '';
+
+    if (deliveriesSummary.length > 0) {
+    panel.style.display = '';
+    deliveriesSummary.forEach((d, idx) => {
+        const opt = document.createElement('option');
+        opt.value = d.dst_ip;
+        opt.textContent = `${d.dst_ip} — ${d.fragments} frags`;
+        if (idx === 0) opt.selected = true;
+        select.appendChild(opt);
+    });
+    } else {
+    panel.style.display = 'none';
+    }
+
+  // Muestra fragments del primer destino (compat actual)
+    renderFragments(respJson.fragments);
+}
+
+document.getElementById('deliveries_select').addEventListener('change', async (e) => {
+    const dst = e.target.value;
+  // Opcional: pedir al backend los fragments de ese destino si no los tenías.
+  // Si guardas todo en el servidor, puedes devolver un endpoint adicional
+  // p.ej. GET /deliveries/{pid}?dst=ip para traerlos; aquí mantenemos simple.
+});
+</script>
 
 	<script>
 	// Binding static buttons after all functions are defined
