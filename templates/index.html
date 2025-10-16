@@ -170,7 +170,7 @@
 	<h2>Simulador de Protocolo</h2>
     <form id="frm">
 		<label>Texto:</label><br>
-		<textarea name="text" rows="4" cols="60"></textarea><br><br>
+		<textarea id="payload_text" name="payload_text" rows="4" cols="60"></textarea><br><br>
 		<label>O subir imagen:</label>
 		<input type="file" name="file" accept="image/*" id="fileInput"><br><br>
 		<div class="row">
@@ -657,8 +657,8 @@
 
 		// Construir FormData manualmente para evitar enviar file vacío
 		const fd = new FormData();
-		const text = form.elements['text'].value || '';
-		fd.append('text', text);
+		const text = document.getElementById('payload_text') ? document.getElementById('payload_text').value : '';
+		fd.append('payload_text', text);
 
 		// Añadir archivo solo si hay uno seleccionado y su tamaño > 0; validar tamaño
 		if (fileInput && fileInput.files && fileInput.files.length > 0) {
