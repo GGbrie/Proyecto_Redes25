@@ -1,959 +1,483 @@
 <!doctype html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<title>Simulador de Protocolo - Proyecto</title>
-	<style>
-	:root{
-		--bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
-		--panel: #ffffffee;
-		--muted: #496dac;
-		--accent: #0c7ff1;
-		--accent-2: #0658a5;
-		--border: #b5c9e6;
-		--text: #0d1b2a;
-	}
+<meta charset="utf-8">
+<title>Simulador de Protocolo - Proyecto</title>
+<style>
+    :root{
+    --bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
+    --panel: #ffffffee;
+    --muted: #496dac;
+    --accent: #0c7ff1;
+    --accent-2: #0658a5;
+    --border: #b5c9e6;
+    --text: #0d1b2a;
+    }
+    body{font-family:Inter,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--text);min-height:100vh;}
+    .container{max-width:980px;margin:0 auto;background:var(--panel);padding:24px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
 
-	:root.dark{
-		--bg: linear-gradient(135deg, #0f1720, #1e2a3a);
-		--panel: #162132;
-		--muted: #8fa3c0;
-		--accent: #60a5fa;
-		--accent-2: #4d9eff;
-		--border: #2c3e50;
-		--text: #e6eef9;
-	}
+  /* HERO */
+    .hero {
+    background: linear-gradient(135deg,#0c7ff1,#4dabff);
+    color:#fff; padding:18px 20px; border-radius:14px;
+    box-shadow: 0 10px 22px rgba(12,127,241,.25);
+    display:flex; align-items:center; gap:10px; margin-bottom:16px;
+    }
+    .hero .badge {
+    background: #ffffff20; border:1px solid #ffffff40;
+    padding:6px 10px; border-radius:999px; font-size:12px;
+    }
 
-	body {
-		font-family: 'Inter', Arial, sans-serif;
-		margin: 0;
-		padding: 24px;
-		background: var(--bg);
-		color: var(--text);
-		min-height: 100vh;
-	}
+  /* FORM */
+    form{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+    label{font-weight:600}
+    textarea,input[type="text"],input[type="number"],input[type="file"],select{
+    width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:6px;padding:8px;background:#f8faff;
+    transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    textarea:hover,input:hover,select:hover{ border-color:#97b6ea }
+    textarea:focus,input:focus,select:focus{
+    outline:0; border-color:#4d9eff;
+    box-shadow: 0 0 0 3px rgba(77,158,255,.25);
+    }
+    .row{display:flex;gap:10px;align-items:center}
+    .row>label{min-width:130px}
 
-	h2, h3 {
-		text-align: center;
-		color: var(--accent);
-		margin-bottom: 28px;
-		font-size: 28px; 
-		font-weight: 700;
-	}
+  /* BUTTONS */
+    button{
+    background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;
+    letter-spacing:.2px; transition:transform .05s ease, filter .15s ease;
+    }
+    button:hover{filter:brightness(0.96)}
+    button:active{ transform: translateY(1px) scale(.99) }
+    button.ghost{ background:#fff;color:var(--accent);border:1px solid var(--border) }
+    button.primary{ background: linear-gradient(135deg,#0c7ff1,#0a6bd1) }
 
-	.container {
-		max-width: 980px;
-		margin: 0 auto;
-		background: var(--panel);
-		padding: 24px;
-		border-radius: 12px;
-		box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-	}
+  /* TEXT + PRE */
+    pre, code {font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
+    pre.box{white-space:pre-wrap;background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;max-height:360px;overflow:auto;box-shadow:0 6px 16px rgba(0,0,0,.04)}
+    small.muted{color:var(--muted)}
+    #status{margin-top:8px}
 
-	form {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-		margin-bottom: 24px;
-	}
+  /* CAROUSEL */
+    .carousel-wrap{margin-top:14px}
+    .carousel-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:8px}
+    .carousel-head .left{display:flex;align-items:center;gap:10px}
+    .pill{
+    background:#eef4ff; color:#274b8e; border:1px solid #d2e0ff;
+    padding:6px 10px; border-radius:999px; font-size:12px;
+    }
+    .carousel-viewport{
+    position:relative; overflow:hidden; width:100%;
+    border:1px solid var(--border); border-radius:14px; background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .carousel-track{ display:flex; transition: transform .45s ease; will-change: transform; }
+    .slide{ min-width:100%; box-sizing:border-box; padding:16px; }
+    .slide-card{ border:1px solid var(--border); border-radius:14px; padding:16px; background:#f9fbff; box-shadow:0 6px 16px rgba(0,0,0,.04) }
+    .slide h4{margin:0 0 8px 0; color:var(--accent); display:flex; align-items:center; gap:8px}
+    .slide h4 .ic { font-size:18px; width:22px; text-align:center }
+    .slide .detail{ white-space:pre-wrap; background:#fff; border:1px dashed #d7e6ff; border-radius:8px; padding:10px; max-height:240px; overflow:auto; line-height:1.35 }
 
-	label {
-		font-weight: 600;
-		color: var(--text);
-	}
+    .nav-btn{
+    position:absolute; top:50%; transform:translateY(-50%);
+    background:#ffffffcc; border:1px solid var(--border); color:var(--accent);
+    width:36px; height:36px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; backdrop-filter: blur(4px); box-shadow:0 6px 16px rgba(0,0,0,.15)
+    }
+    .nav-btn:hover{background:#fff}
+    .nav-btn:active{ transform:translateY(-50%) translateY(1px) }
+    .nav-prev{left:8px}
+    .nav-next{right:8px}
 
-	textarea, input[type="number"], input[type="file"] {
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 8px;
-		font-size: 14px;
-		width: 100%;
-		box-sizing: border-box;
-		background: #f8faff;
-	}
+    .dots{display:flex; gap:6px; justify-content:center; margin-top:10px}
+    .dot{
+    width:12px; height:12px; border-radius:999px; background:#cfe0ff; cursor:pointer; border:1px solid var(--border);
+    transition: transform .15s ease, background .15s ease;
+    }
+    .dot.active{background:var(--accent); transform:scale(1.15)}
 
-	button {
-		background: var(--accent);
-		color: white;
-		padding: 8px 14px;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
-		font-size: 14px;
-		transition: background 0.3s ease, transform 0.1s ease;
-	}
+    .progress {
+    height:6px; background:#e6eefc; border-radius:999px; overflow:hidden; margin:10px 2px 0 2px;
+    border:1px solid var(--border);
+    }
+    .progress > .bar {
+    height:100%; width:0%;
+    background: linear-gradient(135deg,#4dabff,#0c7ff1);
+    transition: width .45s ease;
+    }
 
-	button:hover {
-		background: #1478d4;
-	}
-
-	button:active {
-		transform: scale(0.98);
-	}
-
-	pre#result {
-		white-space: pre-wrap;
-		background: var(--panel);
-		padding: 12px;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		max-height: 360px;
-		overflow: auto;
-		color: var(--text);
-		box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
-	}
-
-	#stepper-controls button {
-		background: white;
-		color: var(--accent);
-		border: 1px solid var(--border);
-		padding: 6px 10px;
-		margin-right: 6px;
-		border-radius: 6px;
-		cursor: pointer;
-		transition: all 0.25s ease;
-	}
-
-	#stepper-controls button:hover {
-		background: var(--accent);
-		color: white;
-		box-shadow: 0 2px 6px rgba(30,144,255,0.3);
-	}
-
-	#step-detail {
-		margin-top: 8px;
-		background: var(--panel);
-		border: 1px solid var(--border);
-		padding: 10px;
-		max-height: 300px;
-		overflow: auto;
-		border-radius: 8px;
-	}
-
-	#frag-list ul {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	#frag-list li {
-		padding: 4px 6px;
-		margin-bottom: 4px;
-		background: #f0f7ff;
-		border-radius: 4px;
-		border: 1px solid #d0e2ff;
-	}
-
-	#frag-list li.active-frag {
-		background: #d9ebff;
-		border-left: 4px solid var(--accent);
-		font-weight: 600;
-	}
-
-	.small-muted {
-		color: var(--muted);
-		font-size: 0.9em;
-	}
-
-	#phys-logs {
-		background: #f8fbff;
-		border-radius: 6px;
-		padding: 6px;
-		border: 1px solid #d5e4f9;
-	}
+  /* SKELETON */
+    .skeleton {
+    animation: pulse 1.2s ease-in-out infinite;
+    background: linear-gradient(90deg,#f2f6ff,#e9f0ff,#f2f6ff);
+    background-size: 200% 100%;
+    }
+    @keyframes pulse { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
 </style>
 </head>
 <body>
-	<!-- ...existing header (sin controles) ... -->
-	<!-- Los controles se mostrarán más abajo (donde estaban originalmente) -->
+<div class="container">
 
-	<h2>Simulador de Protocolo</h2>
-    <form id="frm">
-		<label>Texto:</label><br>
-		<textarea id="payload_text" name="payload_text" rows="4" cols="60"></textarea><br><br>
-		<label>O subir imagen:</label>
-		<input type="file" name="file" accept="image/*" id="fileInput"><br><br>
-		<div class="row">
-    <label for="transmission_type">Tipo de transmisión</label>
-    <select id="transmission_type" name="transmission_type">
-    <option value="unicast" selected>Unicast</option>
-    <option value="broadcast">Broadcast</option>
-    <option value="multicast">Multicast</option>
-    </select>
-</div>
-<div id="deliveries-panel" style="display:none; margin-top:1rem;">
-    <label for="deliveries_select">Entrega (destino):</label>
-    <select id="deliveries_select"></select>
-</div>
+    <!-- HERO modernizado -->
+    <div class="hero">
+    <div style="font-size:22px">📡 Simulador de Protocolo</div>
+    <span class="badge">Demo interactiva</span>
+    </div>
 
-<div class="row">
-    <label for="src_ip">IP Origen</label>
-    <input id="src_ip" name="src_ip" type="text" value="10.0.0.1">
-</div>
+    <!-- ======= FORM ======= -->
+    <form id="form" action="/process" method="post" enctype="multipart/form-data">
+    <label for="payload_text">Texto:</label>
+    <textarea id="payload_text" name="payload_text" rows="4"></textarea>
 
-<div class="row" id="row-dst-ip">
+    <label for="file">O subir imagen:</label>
+    <input id="file" name="file" type="file" accept="image/*">
+
+    <div class="row" id="row-dst-ip">
     <label for="dst_ip">IP Destino</label>
     <input id="dst_ip" name="dst_ip" type="text" value="10.0.0.2">
+    </div>
+
+    <div class="row">
+    <label for="src_ip">IP Origen</label>
+    <input id="src_ip" name="src_ip" type="text" value="10.0.0.1">
+    </div>
+
+    <div class="row">
+    <label for="mtu">MTU (bytes)</label>
+    <input id="mtu" name="mtu" type="number" value="50" min="1" step="1">
+    </div>
+
+    <small id="limits-info" class="muted"></small>
+
+    <button type="submit" class="primary">Procesar</button>
+    </form>
+
+    <!-- (opcional) panel de entregas; con unicast normalmente no se muestra -->
+    <div id="deliveries-panel" style="display:none;margin:10px 0">
+    <label for="deliveries_select">Entrega (destino):</label>
+    <select id="deliveries_select"></select>
+    </div>
+
+    <!-- ======= RESUMEN diferido ======= -->
+    <h3 style="color:var(--accent); text-align:center; margin:10px 0">Resultado (resumen)</h3>
+    <div style="margin:10px 0; display:flex; gap:8px; flex-wrap:wrap">
+    <button id="btnShowSummary" type="button" disabled>Mostrar resumen</button>
+    <button id="btnDownloadFull" type="button" class="ghost" disabled>Descargar JSON completo</button>
+    <button id="btnReassemble"  type="button" class="ghost" disabled>Reensamblar en destino</button>
+    <button id="btnDownloadById" type="button" class="ghost" disabled>Descargar por ID</button>
+    </div>
+    <pre id="summary_box" class="box">Esperando acción…</pre>
+
+    <!-- ======= CARRUSEL DE CAPAS ======= -->
+    <div class="carousel-wrap">
+    <div class="carousel-head">
+    <div class="left">
+        <span class="pill" id="carouselCounter">Paso 0/0</span>
+        <button id="carouselPlay" class="ghost" type="button">Play</button>
+    </div>
+    <div class="right">
+        <small class="muted">
+    process_id: <code id="pidLabel"></code>
+    (<span id="expiresLabel">--:--</span>)
+    — <a id="viewJsonLink" href="#" target="_blank">Ver resultado (JSON)</a>
+        </small>
+    </div>
+    </div>
+
+    <div class="carousel-viewport">
+    <div class="carousel-track" id="carouselTrack"></div>
+    <button class="nav-btn nav-prev" id="navPrev" aria-label="Anterior">‹</button>
+    <button class="nav-btn nav-next" id="navNext" aria-label="Siguiente">›</button>
+    </div>
+    <div class="dots" id="carouselDots"></div>
+    <div class="progress"><div id="carouselProgress" class="bar"></div></div>
+    </div>
+
+    <div id="status" class="muted" style="margin-top:10px"></div>
 </div>
 
-<div class="row" id="row-dst-list" style="display:none;">
-    <label for="dst_list">Destinos (multicast)</label>
-    <input id="dst_list" name="dst_list" type="text" placeholder="10.0.0.2, 10.0.0.3, 10.0.0.4">
-    <small>Sepáralos por comas.</small>
-</div>
-
-
-		<!-- Añadido: campo MTU -->
-		<label>MTU (bytes):</label>
-		<input type="number" name="mtu" id="mtu" value="50" min="1" step="1"><br>
-		<small id="limits-info" style="color:#666"></small><br><br>
-
-		<button type="submit">Procesar</button>
-	</form>
-
-	<h3>Resultado</h3>
-	<pre id="result">Esperando acción...</pre>
-	<div id="status"></div>
-
-	<!-- Restaurado: controles en su posición original (justo antes del detalle) -->
-	<div id="stepper-controls" style="margin-top:12px;"></div>
-	<div id="process-meta" class="small-muted" style="margin-top:8px;"></div>
-
-	<!-- Área de detalle donde se mostrará la información del paso seleccionado -->
-    <div id="step-detail" style="margin-top:8px; background:#fff; border:1px solid #ddd; padding:8px; max-height:300px; overflow:auto;"></div>
-
-    <script>
-	// filepath: c:\Users\DELL\Desktop\U - 2025\Redes de Computadoras I\Proyecto_Final\templates\index.html
-	const form = document.getElementById('frm');
-	const resultEl = document.getElementById('result');
-	const statusEl = document.getElementById('status');
-	const fileInput = document.getElementById('fileInput');
-
-	let lastResponse = null;
-	let stepsArr = [];
-	let currentStep = 0;
-	let playInterval = null;
-	let fragmentPage = 0;
-	const FRAGMENTS_PAGE_SIZE = 10;
-
-	// Cliente: límites (debe coincidir con servidor)
-	const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
-	const MIN_MTU = 1;
-	const MAX_MTU = 65535;
-
-	// mostrar info de límites en UI
-	const limitsInfo = document.getElementById('limits-info');
-	if (limitsInfo) {
-		limitsInfo.textContent = `Límites: archivo ≤ ${Math.round(MAX_UPLOAD_BYTES/1024)} KB, MTU entre ${MIN_MTU} y ${MAX_MTU}.`;
-	}
-
-	// Nuevo: inicializar controles para step-through
-	function initStepperControls() {
-		const container = document.getElementById('stepper-controls');
-		container.innerHTML = '';
-
-		const btnStart = document.createElement('button');
-		btnStart.type = 'button'; btnStart.textContent = 'Start';
-		btnStart.onclick = () => { showStep(0); stopAutoPlay(); };
-
-		const btnPrev = document.createElement('button');
-		btnPrev.type = 'button'; btnPrev.textContent = 'Prev';
-		btnPrev.style.marginLeft = '8px';
-		btnPrev.onclick = () => { prevStep(); stopAutoPlay(); };
-
-		const btnNext = document.createElement('button');
-		btnNext.type = 'button'; btnNext.textContent = 'Next';
-		btnNext.style.marginLeft = '8px';
-		btnNext.onclick = () => { nextStep(); stopAutoPlay(); };
-
-		const btnPlay = document.createElement('button');
-		btnPlay.type = 'button'; btnPlay.textContent = 'Play';
-		btnPlay.style.marginLeft = '8px';
-		btnPlay.onclick = () => { togglePlay(); };
-
-		const info = document.createElement('span');
-		info.id = 'step-info';
-		info.style.marginLeft = '12px';
-		info.textContent = '';
-
-		container.appendChild(btnStart);
-		container.appendChild(btnPrev);
-		container.appendChild(btnNext);
-		container.appendChild(btnPlay);
-		container.appendChild(info);
-	}
-
-	function updateStepInfo() {
-		const info = document.getElementById('step-info');
-		if (!info) return;
-		info.textContent = `Paso ${currentStep+1}/${stepsArr.length} - ${stepsArr[currentStep] ? stepsArr[currentStep].layer : ''}`;
-	}
-
-	function showStep(idx) {
-		if (!stepsArr || stepsArr.length === 0) return;
-		if (idx < 0) idx = 0;
-		if (idx >= stepsArr.length) idx = stepsArr.length -1;
-		currentStep = idx;
-		fragmentPage = 0;
-		updateStepInfo();
-
-		const s = stepsArr[currentStep];
-		const detail = document.getElementById('step-detail');
-		detail.innerHTML = ''; // clear
-
-		const h = document.createElement('div');
-		h.innerHTML = `<strong>${s.layer}</strong>`;
-		detail.appendChild(h);
-
-		// mostrar info o details
-		if (s.details) {
-			// Presentation: show type/filename/bytes
-			if (s.layer.toLowerCase().includes('presentation')) {
-				const d = s.details;
-				const ul = document.createElement('div');
-				ul.innerHTML = `<div>type: ${d.type || ''}</div><div>filename: ${d.filename || ''}</div><div>raw_bytes_len: ${d.raw_bytes_len || 0}</div><div>encoding: ${d.encoding || ''}</div>`;
-				detail.appendChild(ul);
-			}
-			// Transport: show fragments headers paginated
-			else if (s.layer.toLowerCase().includes('transport')) {
-				const d = s.details;
-				const info = document.createElement('div');
-				info.innerHTML = `<div>requested_mtu: ${d.requested_mtu || d.mtu}</div><div>total_len: ${d.total_len || 0}</div><div>fragments_count: ${d.fragments_count || (d.fragments && d.fragments.length) || 0}</div>`;
-				detail.appendChild(info);
-
-				const listWrap = document.createElement('div');
-				listWrap.id = 'frag-list';
-				listWrap.style.marginTop = '8px';
-				detail.appendChild(listWrap);
-
-				renderFragmentPage(d.fragments || []);
-			}
-			// Network: list basic headers count
-			else if (s.layer.toLowerCase().includes('network')) {
-				const d = s.details;
-				detail.appendChild(document.createElement('div')).textContent = `network_fragments: ${(d.fragments_with_network_header && d.fragments_with_network_header.length) || 0}`;
-			}
-			// Physical: animate logs preview
-			else if (s.layer.toLowerCase().includes('physical')) {
-				const d = s.details;
-				const logsBox = document.createElement('div');
-				logsBox.id = 'phys-logs';
-				logsBox.style.maxHeight = '180px';
-				logsBox.style.overflow = 'auto';
-				logsBox.style.background = '#fafafa';
-				logsBox.style.padding = '6px';
-				detail.appendChild(logsBox);
-
-				// animate logs sequentially (limit to 200 visible)
-				animatePhysicalLogs(d.logs || []);
-			}
-		} else {
-			detail.appendChild(document.createElement('div')).textContent = JSON.stringify(s.info || '');
-		}
-	}
-
-	// resaltar fragmentos y permitir seleccionar
-	function renderFragmentPage(fragments) {
-		const wrap = document.getElementById('frag-list');
-		if (!wrap) return;
-		wrap.innerHTML = '';
-		const total = fragments.length;
-		const start = fragmentPage * FRAGMENTS_PAGE_SIZE;
-		const page = fragments.slice(start, start + FRAGMENTS_PAGE_SIZE);
-
-		const nav = document.createElement('div');
-		nav.style.marginBottom = '6px';
-		nav.innerHTML = `Mostrando fragments ${start+1} - ${Math.min(start+page.length, total)} de ${total}`;
-		wrap.appendChild(nav);
-
-		const ul = document.createElement('ul');
-		ul.style.marginTop = '6px';
-		for (let f of page) {
-			const li = document.createElement('li');
-			const hdr = f.header || {};
-			li.textContent = `fragment ${hdr.transport_seq || '?'} / ${hdr.transport_total || '?'} len=${hdr.transport_len || '?'}`;
-			li.style.cursor = 'pointer';
-			li.onclick = () => {
-				// marcar activo y mostrar payload info (sin base64)
-				Array.from(ul.children).forEach(ch=>ch.classList.remove('active-frag'));
-				li.classList.add('active-frag');
-				// opcional: mostrar payload size / preview
-				const preview = document.createElement('div');
-				preview.textContent = `Payload bytes: ${hdr.transport_len || 0}`;
-				const existingPreview = document.getElementById('frag-preview');
-				if (existingPreview) existingPreview.remove();
-				preview.id = 'frag-preview';
-				wrap.appendChild(preview);
-			};
-			ul.appendChild(li);
-		}
-		wrap.appendChild(ul);
-
-		// pagination controls
-		const controls = document.createElement('div');
-		controls.style.marginTop = '6px';
-		const prev = document.createElement('button');
-		prev.type = 'button'; prev.textContent = 'Prev page';
-		prev.onclick = () => { if (fragmentPage > 0) { fragmentPage--; renderFragmentPage(fragments); } };
-		const next = document.createElement('button');
-		next.type = 'button'; next.textContent = 'Next page';
-		next.style.marginLeft = '6px';
-		next.onclick = () => { if ((fragmentPage+1)*FRAGMENTS_PAGE_SIZE < total) { fragmentPage++; renderFragmentPage(fragments); } };
-		controls.appendChild(prev); controls.appendChild(next);
-		wrap.appendChild(controls);
-
-		// marcar primer fragment por defecto
-		if (ul.children.length>0) {
-			ul.children[0].classList.add('active-frag');
-		}
-	}
-
-	// animar logs secuencialmente y mover packet for each log
-	function animatePhysicalLogs(logs) {
-		const box = document.getElementById('phys-logs');
-		if (!box) return;
-		box.innerHTML = '';
-		let i = 0;
-		const maxShow = 200;
-		const timer = setInterval(() => {
-			if (i >= logs.length || i >= maxShow) { clearInterval(timer); return; }
-			const p = document.createElement('div');
-			p.textContent = logs[i];
-			box.appendChild(p);
-			// keep scroll at bottom
-			box.scrollTop = box.scrollHeight;
-			i++;
-		}, 6); // fast stream; adjust if needed
-	}
-
-	function nextStep() { showStep(Math.min(currentStep+1, stepsArr.length-1)); stopAutoPlayIfEnd(); }
-	function prevStep() { showStep(Math.max(currentStep-1, 0)); stopAutoPlay(); }
-
-	// Helper to sync Play/Pause label on static button and dynamic controls
-	function updatePlayButtonLabel() {
-		const staticBtn = document.getElementById('btnPlay');
-		if (staticBtn) staticBtn.textContent = playInterval ? 'Pause' : 'Play';
-		// if dynamic control in #stepper-controls exists (created by initStepperControls), update it too
-		const dyn = Array.from(document.querySelectorAll('#stepper-controls button')).find(b => b.textContent === 'Play' || b.textContent === 'Pause');
-		if (dyn) dyn.textContent = playInterval ? 'Pause' : 'Play';
-	}
-
-	// Ajustar togglePlay para actualizar etiqueta inmediatamente
-	function togglePlay() {
-		const btn = Array.from(document.querySelectorAll('#stepper-controls button')).find(b=>b.textContent==='Play' || b.textContent==='Pause');
-		if (playInterval) {
-			stopAutoPlay();
-			if (btn) btn.textContent = 'Play';
-		} else {
-			if (btn) btn.textContent = 'Pause';
-			playInterval = setInterval(()=> {
-				if (currentStep >= stepsArr.length-1) { stopAutoPlay(); return; }
-				nextStep();
-			}, 700);
-		}
-		// sync static button label
-		updatePlayButtonLabel();
-	}
-
-	function stopAutoPlay() {
-		if (playInterval) { clearInterval(playInterval); playInterval = null; }
-		// ensure labels updated
-		updatePlayButtonLabel();
-		const btn = Array.from(document.querySelectorAll('#stepper-controls button')).find(b=>b.textContent==='Pause');
-		if (btn) btn.textContent = 'Play';
-	}
-	function stopAutoPlayIfEnd() {
-		if (currentStep >= stepsArr.length-1) stopAutoPlay();
-	}
-
-	// Reemplazar la sección donde antes se mostraba JSON completo:
-	async function handleProcessResponseData(data) {
-		lastResponse = data;
-		// mostrar resumen (mantener pequeño)
-		let lines = [];
-		const steps = data.steps || [];
-		for (let s of steps) {
-			lines.push(`- ${s.layer || 'Layer'}:`);
-			if (s.details) {
-				if (s.layer.toLowerCase().includes('presentation')) {
-					const d = s.details;
-					if (d.type) lines.push(`    type: ${d.type}`);
-					if (d.filename) lines.push(`    filename: ${d.filename}`);
-					if (d.raw_bytes_len !== undefined) lines.push(`    raw_bytes_len: ${d.raw_bytes_len}`);
-					if (d.encoding) lines.push(`    encoding: ${d.encoding}`);
-				} else if (s.layer.toLowerCase().includes('transport')) {
-					const d = s.details;
-					lines.push(`    requested_mtu: ${d.requested_mtu || d.mtu}`);
-					lines.push(`    total_len: ${d.total_len || 0}`);
-					lines.push(`    fragments_count: ${d.fragments_count || (d.fragments && d.fragments.length) || 0}`);
-					if (Array.isArray(d.fragments) && d.fragments.length > 0) {
-						for (let f of d.fragments.slice(0, 10)) {
-							if (f.header) lines.push(`      fragment ${f.header.transport_seq}/${f.header.transport_total} len=${f.header.transport_len}`);
-						}
-						if (d.fragments.length > 10) lines.push(`      ... ${d.fragments.length - 10} fragments omitted`);
-					}
-				} else if (s.layer.toLowerCase().includes('network')) {
-					const d = s.details;
-					lines.push(`    network_fragments: ${(d.fragments_with_network_header && d.fragments_with_network_header.length) || 0}`);
-				} else if (s.layer.toLowerCase().includes('physical')) {
-					const d = s.details;
-					lines.push(`    logs: ${(d.logs && d.logs.length) || 0} entries`);
-				}
-			}
-		}
-		resultEl.textContent = lines.join('\n');
-
-		// render buttons and controls
-		renderDownloadJsonButton(data);
-		renderReassembleButtonIfAvailable(data);
-
-		// mostrar process_id area si existe (ahora recibe todo el objeto data)
-		if (data.process_id) renderProcessIdArea(data);
-
-		// initialize stepper structures and controls
-		stepsArr = data.steps || [];
-		if (stepsArr.length > 0) {
-			initStepperControls();
-			showStep(0);
-		}
-	}
-
-	function renderDownloadJsonButton(data) {
-		// quitar botón anterior si existe
-		const old = document.getElementById('download-json-btn');
-		if (old) old.remove();
-
-		const btn = document.createElement('button');
-		btn.id = 'download-json-btn';
-		btn.type = 'button';
-		btn.textContent = 'Descargar JSON completo';
-		btn.style.marginLeft = '8px';
-		btn.onclick = () => {
-			const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'process-result.json';
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
-		};
-		// insert after resultEl
-		resultEl.parentNode.insertBefore(btn, resultEl.nextSibling);
-	}
-
-	// Nuevo: mostrar process_id y botones para acciones por id + contador regresivo
-	function renderProcessIdArea(data) {
-		const containerId = 'process-meta';
-		const container = document.getElementById(containerId);
-		container.innerHTML = '';
-		if (!data || !data.process_id) return;
-		const pid = data.process_id;
-		const expiresAt = data.expires_at; // epoch seconds (si el servidor lo provee)
-
-		const p = document.createElement('div');
-		p.textContent = `process_id: ${pid}`;
-		p.style.fontWeight = 'bold';
-		p.style.marginBottom = '6px';
-
-		// contador regresivo
-		const countdown = document.createElement('span');
-		countdown.id = 'expires-countdown';
-		countdown.style.marginLeft = '12px';
-		countdown.style.fontWeight = 'normal';
-		p.appendChild(countdown);
-
-		// limpiar intervalos previos
-		if (window._processCountdownInterval) {
-			clearInterval(window._processCountdownInterval);
-			window._processCountdownInterval = null;
-		}
-
-		// iniciar contador (si expiresAt está definido)
-		if (expiresAt) {
-			function fmt(secs) {
-				const h = Math.floor(secs / 3600);
-				const m = Math.floor((secs % 3600) / 60);
-				const s = secs % 60;
-				if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-				return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-			}
-			function update() {
-				const secs = Math.max(0, Math.floor(expiresAt - (Date.now()/1000)));
-				if (secs <= 0) {
-					countdown.textContent = '(expirado)';
-					clearInterval(window._processCountdownInterval);
-					window._processCountdownInterval = null;
-				} else {
-					countdown.textContent = `(expira en ${fmt(secs)})`;
-				}
-			}
-			update();
-			window._processCountdownInterval = setInterval(update, 1000);
-		}
-
-		const linkResult = document.createElement('a');
-		linkResult.href = `/result/${pid}`;
-		linkResult.textContent = 'Ver resultado (JSON)';
-		linkResult.target = '_blank';
-		linkResult.style.marginRight = '8px';
-
-		const btnDownloadId = document.createElement('button');
-		btnDownloadId.type = 'button';
-		btnDownloadId.textContent = 'Descargar por ID';
-		btnDownloadId.style.marginLeft = '8px';
-		btnDownloadId.onclick = async () => {
-			statusEl.textContent = 'Descargando por ID...';
-			try {
-				const r = await fetch(`/download/${pid}`);
-				if (!r.ok) {
-					const err = await r.json().catch(()=>({error:'unknown'}));
-					statusEl.textContent = `Error HTTP ${r.status}`;
-					resultEl.textContent = JSON.stringify(err, null, 2);
-					return;
-				}
-				const blob = await r.blob();
-				let filename = 'reassembled.bin';
-				const cd = r.headers.get('content-disposition') || '';
-				const m = cd.match(/filename="?(.*?)"?($|;)/);
-				if (m && m[1]) filename = m[1];
-				const url = URL.createObjectURL(blob);
-				const a = document.createElement('a');
-				a.href = url;
-				a.download = filename;
-				document.body.appendChild(a);
-				a.click();
-				a.remove();
-				URL.revokeObjectURL(url);
-				statusEl.textContent = `Descarga iniciada: ${filename}`;
-			} catch (err) {
-				statusEl.textContent = 'Error en descarga por ID (ver consola)';
-				console.error(err);
-			}
-		};
-
-		container.appendChild(p);
-		container.appendChild(linkResult);
-		container.appendChild(btnDownloadId);
-	}
-
-	form.removeEventListener && form.removeEventListener('submit', ()=>{}); // no-op safe
-	form.addEventListener('submit', async (e) => {
-		e.preventDefault();
-		resultEl.textContent = 'Procesando...';
-		statusEl.textContent = '';
-
-		// validar cliente: MTU y tamaño de archivo
-		const mtuEl = document.getElementById('mtu');
-		let mtuVal = parseInt(mtuEl ? mtuEl.value : '50') || 50;
-		let mtuAdjusted = false;
-		if (mtuVal < MIN_MTU) { mtuVal = MIN_MTU; mtuAdjusted = true; }
-		if (mtuVal > MAX_MTU) { mtuVal = MAX_MTU; mtuAdjusted = true; }
-		if (mtuAdjusted) {
-			statusEl.textContent = `MTU ajustado a rango [${MIN_MTU},${MAX_MTU}] → ${mtuVal}`;
-			if (mtuEl) mtuEl.value = mtuVal;
-		}
-
-		// Construir FormData manualmente para evitar enviar file vacío
-		const fd = new FormData();
-		const text = document.getElementById('payload_text') ? document.getElementById('payload_text').value : '';
-		fd.append('payload_text', text);
-
-		// Añadir archivo solo si hay uno seleccionado y su tamaño > 0; validar tamaño
-		if (fileInput && fileInput.files && fileInput.files.length > 0) {
-			const f = fileInput.files[0];
-			if (f && f.size > 0) {
-				if (f.size > MAX_UPLOAD_BYTES) {
-					statusEl.textContent = `Archivo demasiado grande (${Math.round(f.size/1024)} KB). Límite ${Math.round(MAX_UPLOAD_BYTES/1024)} KB.`;
-					resultEl.textContent = 'Cancelado: archivo demasiado grande.';
-					return;
-				}
-				fd.append('file', f, f.name);
-			}
-		}
-
-		fd.append('mtu', mtuVal.toString());
-
-		try {
-			const res = await fetch('/process', { method: 'POST', body: fd });
-			const ct = res.headers.get('content-type') || '';
-
-			if (!res.ok) {
-				if (ct.includes('application/json')) {
-					const err = await res.json();
-					resultEl.textContent = JSON.stringify(err, null, 2);
-					statusEl.textContent = `Error HTTP ${res.status}`;
-				} else {
-					const txt = await res.text();
-					resultEl.textContent = txt;
-					statusEl.textContent = `Error HTTP ${res.status} (respuesta no JSON)`;
-				}
-				return;
-			}
-
-			if (ct.includes('application/json')) {
-				const data = await res.json();
-				// mostrar resumen y no el JSON completo
-				handleProcessResponseData(data);
-			} else {
-				const txt = await res.text();
-				resultEl.textContent = txt;
-				statusEl.textContent = 'Respuesta no JSON recibida';
-			}
-		} catch (err) {
-			resultEl.textContent = String(err);
-			statusEl.textContent = 'Fetch error (ver consola)';
-			console.error(err);
-		}
-	});
-
-	// Ajustes en renderReassembleButtonIfAvailable: evitar añadir JSON grande al DOM
-	function renderReassembleButtonIfAvailable(data) {
-		// limpiar cualquier control anterior
-		const existing = document.getElementById('reassemble-area');
-		if (existing) existing.remove();
-
-		// buscar fragments en respuesta: steps[2].details.fragments
-		try {
-			const steps = data.steps || [];
-			const transportStep = steps[2] && steps[2].details;
-			const fragments = transportStep && transportStep.fragments;
-			if (!Array.isArray(fragments) || fragments.length === 0) return;
-
-			const area = document.createElement('div');
-			area.id = 'reassemble-area';
-			area.style.marginTop = '10px';
-
-			const btn = document.createElement('button');
-			btn.type = 'button';
-			btn.textContent = 'Reensamblar en destino';
-			btn.onclick = async () => {
-				statusEl.textContent = 'Reensamblando...';
-				const pres = steps[1] && steps[1].details;
-				const type = pres && pres.type ? pres.type : 'text';
-				const filename = pres && pres.filename ? pres.filename : undefined;
-
-				const body = { fragments: fragments, type: type };
-				if (filename) body.filename = filename;
-
-				try {
-					const r = await fetch('/reassemble', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(body)
-					});
-					if (!r.ok) {
-						const err = await r.json().catch(()=>({error:'unknown'}));
-						resultEl.textContent = JSON.stringify(err, null, 2);
-						statusEl.textContent = `Error HTTP ${r.status}`;
-						return;
-					}
-					const resp = await r.json();
-
-					// mostrar resultado reensamblado sin imprimir base64 crudo
-					// borrar área anterior de resultados reensamblado
-					const prev = document.getElementById('reassembled-result');
-					if (prev) prev.remove();
-					const resArea = document.createElement('div');
-					resArea.id = 'reassembled-result';
-					resArea.style.marginTop = '8px';
-
-					if (resp.type === 'text') {
-						const p = document.createElement('pre');
-						p.textContent = resp.text;
-						resArea.appendChild(p);
-						statusEl.textContent = `Reensamblado: ${resp.size} bytes (texto)`;
-					} else if (resp.type === 'image' || resp.type === 'binary') {
-						// mostrar imagen si viene como base64
-						if (resp.payload_b64) {
-							const img = document.createElement('img');
-							img.src = 'data:image/*;base64,' + resp.payload_b64;
-							resArea.appendChild(img);
-						}
-						// enlace de descarga (no mostrar base64)
-						const a = document.createElement('a');
-						a.textContent = 'Descargar archivo reensamblado';
-						a.href = 'data:application/octet-stream;base64,' + (resp.payload_b64 || '');
-						a.download = resp.filename || 'reassembled.bin';
-						a.style.display = 'inline-block';
-						a.style.marginTop = '8px';
-						resArea.appendChild(a);
-						statusEl.textContent = `Reensamblado: ${resp.size} bytes (binario)`;
-					} else {
-						// mostrar objeto de respuesta resumido
-						const p = document.createElement('pre');
-						p.textContent = JSON.stringify(resp, null, 2);
-						resArea.appendChild(p);
-						statusEl.textContent = 'Resultado recibido';
-					}
-
-					area.appendChild(resArea);
-
-					// dentro de renderReassembleButtonIfAvailable, después de crear el enlace a (data:URI)
-					// agregar botón para descarga por stream
-					const streamBtn = document.createElement('button');
-					streamBtn.type = 'button';
-					streamBtn.textContent = 'Descargar (stream)';
-					streamBtn.style.marginLeft = '8px';
-					streamBtn.onclick = async () => {
-						statusEl.textContent = 'Descargando (stream)...';
-						try {
-							const r2 = await fetch('/download', {
-								method: 'POST',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify(body)
-							});
-							if (!r2.ok) {
-								const err = await r2.json().catch(()=>({error:'unknown'}));
-								statusEl.textContent = `Error HTTP ${r2.status}`;
-								resultEl.textContent = JSON.stringify(err, null, 2);
-								return;
-							}
-							// obtener blob y filename desde header
-							const blob = await r2.blob();
-							let filename = 'reassembled.bin';
-							const cd = r2.headers.get('content-disposition') || '';
-							const m = cd.match(/filename="?(.*?)"?($|;)/);
-							if (m && m[1]) filename = m[1];
-							const url = URL.createObjectURL(blob);
-							const a2 = document.createElement('a');
-							a2.href = url;
-							a2.download = filename;
-							document.body.appendChild(a2);
-							a2.click();
-							a2.remove();
-							URL.revokeObjectURL(url);
-							statusEl.textContent = `Descarga iniciada: ${filename}`;
-						} catch (err) {
-							statusEl.textContent = 'Error en descarga (ver consola)';
-							console.error(err);
-						}
-					};
-					area.appendChild(streamBtn);
-				} catch (err) {
-					statusEl.textContent = 'Fetch error en reensamblado';
-					console.error(err);
-				}
-			};
-
-			area.appendChild(btn);
-			document.body.insertBefore(area, statusEl.nextSibling);
-		} catch (err) {
-			console.error('renderReassemble error', err);
-		}
-	}
-
-	// Enlazar botones estáticos con las funciones existentes si están definidas
-	(function attachStaticStepperHandlers(){
-		const start = document.getElementById('btnStart');
-		const prev = document.getElementById('btnPrev');
-		const next = document.getElementById('btnNext');
-		const play = document.getElementById('btnPlay');
-		if (start) start.addEventListener('click', () => { try { showStep(0); stopAutoPlay(); } catch(e){} });
-		if (prev) prev.addEventListener('click', () => { try { prevStep(); stopAutoPlay(); } catch(e){} });
-		if (next) next.addEventListener('click', () => { try { nextStep(); stopAutoPlay(); } catch(e){} });
-		if (play) play.addEventListener('click', () => { try { togglePlay(); } catch(e){} });
-	})();
-
-	// Bind static controls AFTER functions are defined
-	// Theme toggle
-	function toggleTheme() {
-		const root = document.documentElement;
-		if (root.classList.contains('dark')) {
-			root.classList.remove('dark');
-		} else {
-			root.classList.add('dark');
-		}
-	}
-
-	// At the end of the script we attach handlers to ensure functions exist.
-	// (See the block near the end of this <script> that performs the binding.)
-    </script>
-    <script>
-        const selType = document.getElementById('transmission_type');
-        const rowDstIp = document.getElementById('row-dst-ip');
-        const rowDstList = document.getElementById('row-dst-list');
-        const dstIpInput = document.getElementById('dst_ip');
-
-function refreshTransmissionUI() {
-        const t = selType.value;
-    if (t === 'unicast') {
-    rowDstIp.style.display = '';
-    rowDstList.style.display = 'none';
-    dstIpInput.value = dstIpInput.value || '10.0.0.2';
-    } else if (t === 'broadcast') {
-    rowDstIp.style.display = '';
-    rowDstList.style.display = 'none';
-    dstIpInput.value = '255.255.255.255';
-    } else {
-    rowDstIp.style.display = 'none';
-    rowDstList.style.display = '';
-    }
-}
-selType.addEventListener('change', refreshTransmissionUI);
-document.addEventListener('DOMContentLoaded', refreshTransmissionUI);
-</script>
 <script>
-let currentPid = null;
-let deliveriesSummary = [];
+  // ====== Constantes cliente ======
+  const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+    const MIN_MTU = 1;
+    const MAX_MTU = 65535;
 
-async function onProcessComplete(respJson) {
-    currentPid = respJson.pid;
-    deliveriesSummary = respJson.deliveries_summary || [];
+  // ====== UI refs ======
+    const form = document.getElementById('form');
+    const summaryBox = document.getElementById('summary_box');
+    const statusEl = document.getElementById('status');
+    const pidLabel = document.getElementById('pidLabel');
+    const expiresLabel = document.getElementById('expiresLabel');
+    const viewJsonLink = document.getElementById('viewJsonLink');
 
+    const btnDownloadFull = document.getElementById('btnDownloadFull');
+    const btnDownloadById  = document.getElementById('btnDownloadById');
+    const btnReassemble    = document.getElementById('btnReassemble');
+    const btnShowSummary   = document.getElementById('btnShowSummary');
+
+    const limitsInfo = document.getElementById('limits-info');
+    limitsInfo.textContent = `Límites: archivo ≤ ${Math.round(MAX_UPLOAD_BYTES/1024)} KB, MTU entre ${MIN_MTU} y ${MAX_MTU}.`;
+
+  // ====== Estado ======
+    let currentPid = null;
+    let expireTimer = null;
+
+  // Resumen diferido
+    let pendingSummary = null;
+    let summaryVisible = false;
+
+  // Carousel state
+    const track = document.getElementById('carouselTrack');
+    const dots  = document.getElementById('carouselDots');
+    const counter = document.getElementById('carouselCounter');
+    const btnPrev = document.getElementById('navPrev');
+    const btnNext = document.getElementById('navNext');
+    const btnPlay = document.getElementById('carouselPlay');
+    const progress = document.getElementById('carouselProgress');
+
+    let slides = [];    // [{title, detail}, ...]
+    let idx = 0;
+    let autoTimer = null;
+
+  // ====== Submit ======
+    form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = 'Procesando…';
+    summaryBox.textContent = '';
+    summaryBox.classList.add('skeleton');
+    btnShowSummary.disabled = true;
+    btnShowSummary.textContent = 'Mostrar resumen';
+    summaryVisible = false;
+
+    // Validar MTU
+    const mtuEl = document.getElementById('mtu');
+    let mtuVal = parseInt(mtuEl.value || '50', 10);
+    if (isNaN(mtuVal)) mtuVal = 50;
+    mtuVal = Math.max(MIN_MTU, Math.min(MAX_MTU, mtuVal));
+    mtuEl.value = mtuVal;
+
+    // FormData
+    const fd = new FormData(form);
+    const file = document.getElementById('file').files[0];
+    if (file && file.size > MAX_UPLOAD_BYTES){
+    statusEl.textContent = `Archivo demasiado grande (${Math.round(file.size/1024)} KB)`;
+    summaryBox.classList.remove('skeleton');
+    summaryBox.textContent = 'Cancelado: archivo demasiado grande.';
+    return;
+    }
+
+    try{
+    const res = await fetch('/process', { method:'POST', body: fd });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { throw new Error(`Respuesta no-JSON (${res.status})\n${text}`); }
+    if (!res.ok) throw new Error(data?.detail ? JSON.stringify(data.detail) : `HTTP ${res.status}`);
+
+    onProcessComplete(data);
+    }catch(err){
+    summaryBox.classList.remove('skeleton');
+    statusEl.textContent = 'Error en la solicitud';
+    summaryBox.textContent = String(err);
+    }
+    });
+
+  // ====== Helpers ======
+    function formatSummary(s){
+    const lines = [];
+    lines.push(`- Application (Interfaz de Usuario):`);
+    lines.push(`- Presentation (Codificador):`);
+    if (s.Presentation){
+    lines.push(`type: ${s.Presentation.type}`);
+    lines.push(`raw_bytes_len: ${s.Presentation.raw_bytes_len}`);
+    lines.push(`encoding: ${s.Presentation.encoding}`);
+    }
+    lines.push(`- Transport:`);
+    if (s.Transport){
+    lines.push(`requested_mtu: ${s.Transport.requested_mtu}`);
+    lines.push(`total_len: ${s.Transport.total_len}`);
+    lines.push(`fragments_count: ${s.Transport.fragments_count}`);
+    (s.Transport.fragments || []).forEach(f => lines.push(`- ${f}`));
+    }
+    lines.push(`- Network:`);
+    if (s.Network) lines.push(`network_fragments: ${s.Network.network_fragments}`);
+    lines.push(`- Physical (Transmisión Visual):`);
+    if (s.Physical) lines.push(`logs: ${s.Physical.logs?.length || 0} entries`);
+    return lines.join('\n');
+    }
+
+    function startExpireCountdown(seconds){
+    if (expireTimer) clearInterval(expireTimer);
+    let remaining = Math.max(0, parseInt(seconds || 0, 10));
+    const tick = ()=>{
+    const m = Math.floor(remaining/60);
+    const s = remaining%60;
+    expiresLabel.textContent = `expira en ${m}:${String(s).padStart(2,'0')}`;
+    remaining = Math.max(0, remaining-1);
+    };
+    tick();
+    expireTimer = setInterval(tick, 1000);
+    }
+
+  // ====== Carousel utils ======
+    function iconFor(title='') {
+    const t = title.toLowerCase();
+    if (t.includes('application'))  return '🧑‍💻';
+    if (t.includes('presentation')) return '🧩';
+    if (t.includes('transport'))    return '✂️';
+    if (t.includes('network'))      return '🌐';
+    if (t.includes('physical'))     return '📡';
+    return '📦';
+    }
+
+    function buildCarousel(stepArray){
+    slides = Array.isArray(stepArray) ? stepArray : [];
+    track.innerHTML = '';
+    dots.innerHTML = '';
+    idx = 0;
+    stopAuto();
+
+    slides.forEach((s, i)=>{
+    const slide = document.createElement('div');
+    slide.className = 'slide';
+    slide.innerHTML = `
+        <div class="slide-card">
+        <h4><span class="ic">${iconFor(s.title)}</span>${s.title || 'Layer'}</h4>
+        <div class="detail">${(s.detail || '').replaceAll('<','&lt;').replaceAll('>','&gt;')}</div>
+        </div>
+    `;
+    track.appendChild(slide);
+
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0?' active':'');
+    d.onclick = ()=> goTo(i);
+    dots.appendChild(d);
+    });
+
+    updateCarousel();
+    }
+
+    function updateCarousel(){
+    const x = -idx * 100;
+    track.style.transform = `translateX(${x}%)`;
+    counter.textContent = `Paso ${slides.length ? idx+1 : 0}/${slides.length}`;
+    Array.from(dots.children).forEach((d,i)=> d.classList.toggle('active', i===idx));
+    if (progress && slides.length) {
+      progress.style.width = `${((idx + 1) / slides.length) * 100}%`;
+    }
+    }
+
+    function next(){ if (!slides.length) return; idx = (idx+1) % slides.length; updateCarousel(); }
+    function prev(){ if (!slides.length) return; idx = (idx-1+slides.length) % slides.length; updateCarousel(); }
+    function goTo(i){ if (!slides.length) return; idx = Math.max(0, Math.min(slides.length-1, i)); updateCarousel(); }
+
+    function play(){
+    if (autoTimer || !slides.length) return;
+    btnPlay.textContent = 'Pause';
+    autoTimer = setInterval(next, 900);
+    }
+    function stopAuto(){
+    if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+    btnPlay.textContent = 'Play';
+    }
+    document.getElementById('navPrev').onclick = ()=>{ stopAuto(); prev(); };
+    document.getElementById('navNext').onclick = ()=>{ stopAuto(); next(); };
+    btnPlay.onclick = ()=>{ autoTimer ? stopAuto() : play(); };
+
+  // swipe soporte básico (móvil)
+    let startX = null;
+    track.addEventListener('touchstart', e=> startX = e.touches[0].clientX);
+    track.addEventListener('touchend', e=>{
+    if (startX===null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40){ dx<0 ? next() : prev(); }
+    startX = null;
+    });
+
+  // ====== Botón Mostrar/Ocultar resumen ======
+    btnShowSummary.onclick = ()=>{
+    if (!pendingSummary) return;
+    summaryVisible = !summaryVisible;
+    if (summaryVisible){
+    summaryBox.textContent = formatSummary(pendingSummary);
+    btnShowSummary.textContent = 'Ocultar resumen';
+    } else {
+    summaryBox.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
+    btnShowSummary.textContent = 'Mostrar resumen';
+    }
+    };
+
+  // ====== Acciones auxiliares ======
+    btnDownloadFull.onclick = async ()=>{
+    if (!currentPid) return;
+    const r = await fetch(`/result/${currentPid}`);
+    const blob = new Blob([await r.text()], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `result_${currentPid}.json`;
+    a.click();
+    };
+
+    btnDownloadById.onclick = ()=>{
+    if (!currentPid) return;
+    window.location.href = `/download/${currentPid}`;
+    };
+
+    btnReassemble.onclick = async ()=>{
+    if (!currentPid) return;
+    const fd = new FormData();
+    fd.append('pid', currentPid);
+    const sel = document.getElementById('deliveries_select');
+    if (sel && sel.value) fd.append('dst_ip', sel.value);
+    const r = await fetch('/reassemble', { method:'POST', body: fd });
+    statusEl.textContent = r.ok ? 'Reensamblado OK' : `Error HTTP ${r.status}`;
+    };
+
+    function renderDeliveries(deliveriesSummary){
     const panel = document.getElementById('deliveries-panel');
     const select = document.getElementById('deliveries_select');
     select.innerHTML = '';
-
-    if (deliveriesSummary.length > 0) {
-    panel.style.display = '';
-    deliveriesSummary.forEach((d, idx) => {
-        const opt = document.createElement('option');
-        opt.value = d.dst_ip;
-        opt.textContent = `${d.dst_ip} — ${d.fragments} frags`;
-        if (idx === 0) opt.selected = true;
-        select.appendChild(opt);
-    });
-    } else {
+    if (!deliveriesSummary || !deliveriesSummary.length){
     panel.style.display = 'none';
+    return;
+    }
+    panel.style.display = '';
+    deliveriesSummary.forEach((d, i)=>{
+    const opt = document.createElement('option');
+    opt.value = d.dst_ip;
+    opt.textContent = `${d.dst_ip} — ${d.fragments} frags`;
+    if (i===0) opt.selected = true;
+    select.appendChild(opt);
+    });
     }
 
-  // Muestra fragments del primer destino (compat actual)
-    renderFragments(respJson.fragments);
-}
+  // ====== Al completar /process ======
+    function onProcessComplete(resp){
+    summaryBox.classList.remove('skeleton');
 
-document.getElementById('deliveries_select').addEventListener('change', async (e) => {
-    const dst = e.target.value;
-  // Opcional: pedir al backend los fragments de ese destino si no los tenías.
-  // Si guardas todo en el servidor, puedes devolver un endpoint adicional
-  // p.ej. GET /deliveries/{pid}?dst=ip para traerlos; aquí mantenemos simple.
-});
+    currentPid = resp.pid || null;
+    pidLabel.textContent = currentPid || '';
+    viewJsonLink.href = currentPid ? `/result/${currentPid}` : '#';
+
+    // Resumen diferido (no mostrar hasta botón)
+    pendingSummary = resp.summary || {};
+    summaryVisible = false;
+    summaryBox.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
+    btnShowSummary.disabled   = false;
+    btnDownloadFull.disabled  = false;
+    btnReassemble.disabled    = false;
+    btnDownloadById.disabled  = false;
+
+    // Carousel con pasos
+    buildCarousel(resp.steps || []);
+    stopAuto(); // inicia pausado
+
+    // Expiración e info extra
+    startExpireCountdown(resp.expires_in || 0);
+    renderDeliveries(resp.deliveries_summary || []);
+
+    statusEl.textContent = 'Listo ✔';
+    }
 </script>
-
-	<script>
-	// Binding static buttons after all functions are defined
-	(function bindControlsAtEnd(){
-		// wait microtick to ensure earlier script executed
-		setTimeout(()=> {
-			const start = document.getElementById('btnStart');
-			const prev = document.getElementById('btnPrev');
-			const next = document.getElementById('btnNext');
-			const play = document.getElementById('btnPlay');
-			const theme = document.getElementById('btnTheme');
-			if (start) start.addEventListener('click', () => { try { showStep(0); stopAutoPlay(); } catch(e){} });
-			if (prev) prev.addEventListener('click', () => { try { prevStep(); stopAutoPlay(); } catch(e){} });
-			if (next) next.addEventListener('click', () => { try { nextStep(); stopAutoPlay(); } catch(e){} });
-			if (play) play.addEventListener('click', () => { try {
-				togglePlay();
-				// sync button text with current state
-				play.textContent = playInterval ? 'Pause' : 'Play';
-			} catch(e){} });
-			if (theme) theme.addEventListener('click', () => { try { toggleTheme(); } catch(e){} });
-			// ensure initial label
-			updatePlayButtonLabel();
-		}, 0);
-	})();
-	</script>
 </body>
 </html>
