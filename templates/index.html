@@ -3,481 +3,515 @@
 <head>
 <meta charset="utf-8">
 <title>Simulador de Protocolo - Proyecto</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-    :root{
-    --bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
-    --panel: #ffffffee;
-    --muted: #496dac;
-    --accent: #0c7ff1;
-    --accent-2: #0658a5;
-    --border: #b5c9e6;
-    --text: #0d1b2a;
-    }
-    body{font-family:Inter,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--text);min-height:100vh;}
-    .container{max-width:980px;margin:0 auto;background:var(--panel);padding:24px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
+:root{
+  --bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
+  --panel: #ffffffee;
+  --muted: #496dac;
+  --accent: #0c7ff1;
+  --accent-2: #0658a5;
+  --border: #b5c9e6;
+  --text: #0d1b2a;
+  --success: #16a34a;
+  --danger: #e03131;
+}
+:root.dark{
+  --bg: linear-gradient(135deg, #0f1720, #1e2a3a);
+  --panel: #162132;
+  --muted: #9aa4b2;
+  --accent: #60a5fa;
+  --accent-2: #4d9eff;
+  --border: #2c3e50;
+  --text: #e6eef9;
+  --success: #34d399;
+  --danger: #fb7185;
+}
 
-  /* HERO */
-    .hero {
-    background: linear-gradient(135deg,#0c7ff1,#4dabff);
-    color:#fff; padding:18px 20px; border-radius:14px;
-    box-shadow: 0 10px 22px rgba(12,127,241,.25);
-    display:flex; align-items:center; gap:10px; margin-bottom:16px;
-    }
-    .hero .badge {
-    background: #ffffff20; border:1px solid #ffffff40;
-    padding:6px 10px; border-radius:999px; font-size:12px;
-    }
+*{box-sizing:border-box}
+body{font-family:Inter,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:980px;margin:0 auto;background:var(--panel);padding:20px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
 
-  /* FORM */
-    form{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
-    label{font-weight:600}
-    textarea,input[type="text"],input[type="number"],input[type="file"],select{
-    width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:6px;padding:8px;background:#f8faff;
-    transition:border-color .15s ease, box-shadow .15s ease;
-    }
-    textarea:hover,input:hover,select:hover{ border-color:#97b6ea }
-    textarea:focus,input:focus,select:focus{
-    outline:0; border-color:#4d9eff;
-    box-shadow: 0 0 0 3px rgba(77,158,255,.25);
-    }
-    .row{display:flex;gap:10px;align-items:center}
-    .row>label{min-width:130px}
+/* HERO */
+.hero{background:linear-gradient(135deg,#0c7ff1,#4dabff);color:#fff;padding:14px 16px;border-radius:12px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hero .badge{background:#ffffff20;border:1px solid #ffffff40;padding:6px 10px;border-radius:999px;font-size:12px}
 
-  /* BUTTONS */
-    button{
-    background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;
-    letter-spacing:.2px; transition:transform .05s ease, filter .15s ease;
-    }
-    button:hover{filter:brightness(0.96)}
-    button:active{ transform: translateY(1px) scale(.99) }
-    button.ghost{ background:#fff;color:var(--accent);border:1px solid var(--border) }
-    button.primary{ background: linear-gradient(135deg,#0c7ff1,#0a6bd1) }
+/* FORM */
+form{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+label{font-weight:600}
+textarea,input[type="text"],input[type="number"],input[type="file"],select{
+  width:100%;border:1px solid var(--border);border-radius:8px;padding:8px;background:#f8faff;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+textarea:hover,input:hover,select:hover{border-color:#97b6ea}
+textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shadow:0 0 0 3px rgba(77,158,255,.14)}
+.row{display:flex;gap:10px;align-items:center}
+.row>label{min-width:130px}
 
-  /* TEXT + PRE */
-    pre, code {font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
-    pre.box{white-space:pre-wrap;background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;max-height:360px;overflow:auto;box-shadow:0 6px 16px rgba(0,0,0,.04)}
-    small.muted{color:var(--muted)}
-    #status{margin-top:8px}
+/* BUTTONS */
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;letter-spacing:.2px;transition:transform .05s ease, filter .15s ease}
+.btn:hover{filter:brightness(0.96)}
+.btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
+.btn.primary{background:linear-gradient(135deg,#0c7ff1,#0a6bd1)}
+/* active style for origen/destino */
+.btn.active{background:linear-gradient(135deg,#0a61c6,#0c7ff1);color:#fff;box-shadow:0 8px 20px rgba(12,127,241,.18);border:0}
 
-  /* CAROUSEL */
-    .carousel-wrap{margin-top:14px}
-    .carousel-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:8px}
-    .carousel-head .left{display:flex;align-items:center;gap:10px}
-    .pill{
-    background:#eef4ff; color:#274b8e; border:1px solid #d2e0ff;
-    padding:6px 10px; border-radius:999px; font-size:12px;
-    }
-    .carousel-viewport{
-    position:relative; overflow:hidden; width:100%;
-    border:1px solid var(--border); border-radius:14px; background:#fff;
-    box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
-    .carousel-track{ display:flex; transition: transform .45s ease; will-change: transform; }
-    .slide{ min-width:100%; box-sizing:border-box; padding:16px; }
-    .slide-card{ border:1px solid var(--border); border-radius:14px; padding:16px; background:#f9fbff; box-shadow:0 6px 16px rgba(0,0,0,.04) }
-    .slide h4{margin:0 0 8px 0; color:var(--accent); display:flex; align-items:center; gap:8px}
-    .slide h4 .ic { font-size:18px; width:22px; text-align:center }
-    .slide .detail{ white-space:pre-wrap; background:#fff; border:1px dashed #d7e6ff; border-radius:8px; padding:10px; max-height:240px; overflow:auto; line-height:1.35 }
+/* status animations */
+@keyframes jump {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+  60% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
 
-    .nav-btn{
-    position:absolute; top:50%; transform:translateY(-50%);
-    background:#ffffffcc; border:1px solid var(--border); color:var(--accent);
-    width:36px; height:36px; border-radius:999px; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; backdrop-filter: blur(4px); box-shadow:0 6px 16px rgba(0,0,0,.15)
-    }
-    .nav-btn:hover{background:#fff}
-    .nav-btn:active{ transform:translateY(-50%) translateY(1px) }
-    .nav-prev{left:8px}
-    .nav-next{right:8px}
+/* CAROUSEL */
+.carousel-wrap{margin-top:8px}
+.carousel-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:8px}
+.carousel-head .left{display:flex;align-items:center;gap:10px}
+.pill{background:#eef4ff;color:#274b8e;border:1px solid #d2e0ff;padding:6px 10px;border-radius:999px;font-size:12px}
+.carousel-viewport{position:relative;overflow:hidden;width:100%;border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+.carousel-track{display:flex;transition:transform .45s ease;will-change:transform}
+.slide{min-width:100%;box-sizing:border-box;padding:16px}
+.slide-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#f9fbff;box-shadow:0 6px 16px rgba(0,0,0,.04);position:relative}
+.slide h4{margin:0 0 8px 0;color:var(--accent);display:flex;align-items:center;gap:8px}
+.slide h4 .ic{font-size:18px;width:22px;text-align:center}
+.slide .detail{white-space:pre-wrap;background:#fff;border:1px dashed #d7e6ff;border-radius:8px;padding:10px;max-height:320px;overflow:auto;line-height:1.5}
 
-    .dots{display:flex; gap:6px; justify-content:center; margin-top:10px}
-    .dot{
-    width:12px; height:12px; border-radius:999px; background:#cfe0ff; cursor:pointer; border:1px solid var(--border);
-    transition: transform .15s ease, background .15s ease;
-    }
-    .dot.active{background:var(--accent); transform:scale(1.15)}
+/* imagenes dentro del slide - evita superposición */
+.slide .detail img{display:block;max-width:100%;height:auto;margin:10px auto;border-radius:8px;border:1px solid #e0efff;background:#fff;padding:6px}
+.slide .detail p{margin:0 0 8px 0}
 
-    .progress {
-    height:6px; background:#e6eefc; border-radius:999px; overflow:hidden; margin:10px 2px 0 2px;
-    border:1px solid var(--border);
-    }
-    .progress > .bar {
-    height:100%; width:0%;
-    background: linear-gradient(135deg,#4dabff,#0c7ff1);
-    transition: width .45s ease;
-    }
+/* nav */
+.nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:#ffffffcc;border:1px solid var(--border);color:var(--accent);width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter: blur(4px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.nav-btn:hover{background:#fff}
+.nav-prev{left:8px}
+.nav-next{right:8px}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.dot{width:12px;height:12px;border-radius:999px;background:#cfe0ff;cursor:pointer;border:1px solid var(--border);transition:transform .15s ease,background .15s ease}
+.dot.active{background:var(--accent);transform:scale(1.15)}
 
-  /* SKELETON */
-    .skeleton {
-    animation: pulse 1.2s ease-in-out infinite;
-    background: linear-gradient(90deg,#f2f6ff,#e9f0ff,#f2f6ff);
-    background-size: 200% 100%;
-    }
-    @keyframes pulse { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
+/* progress */
+.progress{height:6px;background:#e6eefc;border-radius:999px;overflow:hidden;margin:10px 2px 0 2px;border:1px solid var(--border)}
+.progress>.bar{height:100%;width:0%;background:linear-gradient(135deg,#4dabff,#0c7ff1);transition:width .45s ease}
+
+/* summary */
+#summary_wrap{margin-top:14px}
+#summary_box{background:#f9fbff;border:1px solid #b5c9e6;border-radius:12px;padding:12px;font-family:Inter,Arial,sans-serif;white-space:normal;line-height:1.45;box-shadow:0 6px 12px rgba(0,0,0,.04)}
+.summary-title{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--accent);font-weight:700}
+.layer-card{background:#fff;border:1px solid #dbeffd;padding:10px;border-radius:10px;margin-bottom:8px;box-shadow:0 4px 10px rgba(0,0,0,.03)}
+.layer-card h5{margin:0 0 6px 0;color:var(--accent);font-size:15px}
+.small-muted{color:var(--muted);font-size:0.92em}
+
+/* status text - success & error */
+#statusWrap { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+#limitsText { color:var(--muted); font-size:0.95em; }
+#statusMsg { font-weight:600; font-size:0.98em; }
+.status-success { color: var(--success); animation: jump .8s ease; }
+.status-error   { color: var(--danger); }
+
+/* responsive */
+@media (max-width:720px){
+  .row{flex-direction:column;align-items:stretch}
+  .hero{flex-direction:column;align-items:flex-start}
+}
 </style>
 </head>
 <body>
 <div class="container">
 
-    <!-- HERO modernizado -->
-    <div class="hero">
-    <div style="font-size:22px">📡 Simulador de Protocolo</div>
+  <div class="hero">
+    <div style="font-size:20px">📡 Simulador de Protocolo</div>
     <span class="badge">Demo interactiva</span>
-    </div>
+  </div>
 
-    <!-- ======= FORM ======= -->
-    <form id="form" action="/process" method="post" enctype="multipart/form-data">
+  <form id="form" action="/process" method="post" enctype="multipart/form-data">
     <label for="payload_text">Texto:</label>
-    <textarea id="payload_text" name="payload_text" rows="4"></textarea>
+    <textarea id="payload_text" name="payload_text" rows="4" placeholder="Escribe un mensaje corto..."></textarea>
 
     <label for="file">O subir imagen:</label>
     <input id="file" name="file" type="file" accept="image/*">
 
-    <div class="row" id="row-dst-ip">
-    <label for="dst_ip">IP Destino</label>
-    <input id="dst_ip" name="dst_ip" type="text" value="10.0.0.2">
+    <!-- ======== CAMPOS OCULTOS (IP y MTU) - se envían al backend pero no se muestran ======== -->
+    <div class="row" style="display:none;">
+      <div style="flex:1">
+        <label for="src_ip">IP Origen</label>
+        <input id="src_ip" name="src_ip" type="text" value="10.0.0.1">
+      </div>
+      <div style="width:140px">
+        <label for="mtu">MTU (bytes)</label>
+        <input id="mtu" name="mtu" type="number" value="50" min="1" step="1">
+      </div>
+      <div style="flex:1">
+        <label for="dst_ip">IP Destino</label>
+        <input id="dst_ip" name="dst_ip" type="text" value="10.0.0.2">
+      </div>
     </div>
 
-    <div class="row">
-    <label for="src_ip">IP Origen</label>
-    <input id="src_ip" name="src_ip" type="text" value="10.0.0.1">
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+      <button type="submit" class="btn primary">Procesar</button>
+      <button type="button" id="btnOrigen" class="btn">🖥️ Computadora Origen (7 capas)</button>
+      <button type="button" id="btnDestino" class="btn ghost">🖥️ Computadora Destino (7 capas)</button>
     </div>
 
-    <div class="row">
-    <label for="mtu">MTU (bytes)</label>
-    <input id="mtu" name="mtu" type="number" value="50" min="1" step="1">
-    </div>
+    <small id="limits-info" class="small-muted">Límites: archivo ≤ 50 MB, MTU entre 1 y 65535.</small>
+  </form>
 
-    <small id="limits-info" class="muted"></small>
-
-    <button type="submit" class="primary">Procesar</button>
-    </form>
-
-    <!-- (opcional) panel de entregas; con unicast normalmente no se muestra -->
-    <div id="deliveries-panel" style="display:none;margin:10px 0">
-    <label for="deliveries_select">Entrega (destino):</label>
-    <select id="deliveries_select"></select>
-    </div>
-
-    <!-- ======= RESUMEN diferido ======= -->
-    <h3 style="color:var(--accent); text-align:center; margin:10px 0">Resultado (resumen)</h3>
-    <div style="margin:10px 0; display:flex; gap:8px; flex-wrap:wrap">
-    <button id="btnShowSummary" type="button" disabled>Mostrar resumen</button>
-    <button id="btnDownloadFull" type="button" class="ghost" disabled>Descargar JSON completo</button>
-    <button id="btnReassemble"  type="button" class="ghost" disabled>Reensamblar en destino</button>
-    <button id="btnDownloadById" type="button" class="ghost" disabled>Descargar por ID</button>
-    </div>
-    <pre id="summary_box" class="box">Esperando acción…</pre>
-
-    <!-- ======= CARRUSEL DE CAPAS ======= -->
-    <div class="carousel-wrap">
+  <!-- Carousel (primero) -->
+  <div class="carousel-wrap" id="carouselArea" style="display:none">
     <div class="carousel-head">
-    <div class="left">
+      <div class="left">
         <span class="pill" id="carouselCounter">Paso 0/0</span>
-        <button id="carouselPlay" class="ghost" type="button">Play</button>
-    </div>
-    <div class="right">
-        <small class="muted">
-    process_id: <code id="pidLabel"></code>
-    (<span id="expiresLabel">--:--</span>)
-    — <a id="viewJsonLink" href="#" target="_blank">Ver resultado (JSON)</a>
-        </small>
-    </div>
+        <button id="carouselPlay" class="btn ghost" type="button">Play</button>
+      </div>
+      <div class="right small-muted">
+        process_id: <code id="pidLabel"></code> (<span id="expiresLabel">--:--</span>)
+      </div>
     </div>
 
     <div class="carousel-viewport">
-    <div class="carousel-track" id="carouselTrack"></div>
-    <button class="nav-btn nav-prev" id="navPrev" aria-label="Anterior">‹</button>
-    <button class="nav-btn nav-next" id="navNext" aria-label="Siguiente">›</button>
-    </div>
-    <div class="dots" id="carouselDots"></div>
-    <div class="progress"><div id="carouselProgress" class="bar"></div></div>
+      <div class="carousel-track" id="carouselTrack"></div>
+      <button class="nav-btn nav-prev" id="navPrev" aria-label="Anterior">‹</button>
+      <button class="nav-btn nav-next" id="navNext" aria-label="Siguiente">›</button>
     </div>
 
-    <div id="status" class="muted" style="margin-top:10px"></div>
+    <div class="dots" id="carouselDots"></div>
+    <div class="progress"><div id="carouselProgress" class="bar"></div></div>
+  </div>
+
+  <!-- Resumen (después) -->
+  <div id="summary_wrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 style="color:var(--accent);margin:12px 0 8px 0">Resultado (resumen)</h3>
+      <button id="btnToggleSummary" class="btn ghost" disabled>Mostrar resumen</button>
+    </div>
+    <div id="summary_box">
+      <div class="summary-title">📋 Resumen de transmisión</div>
+      <div id="summary_content" class="small-muted">Esperando acción…</div>
+    </div>
+  </div>
+
+  <div id="statusWrap">
+    <div id="limitsText">Límites: archivo ≤ 50 MB, MTU entre 1 y 65535.</div>
+    <div id="statusMsg" class="small-muted"></div>
+  </div>
+
 </div>
 
 <script>
-  // ====== Constantes cliente ======
-  const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
-    const MIN_MTU = 1;
-    const MAX_MTU = 65535;
+/* ======== constantes ======== */
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+const MIN_MTU = 1, MAX_MTU = 65535;
 
-  // ====== UI refs ======
-    const form = document.getElementById('form');
-    const summaryBox = document.getElementById('summary_box');
-    const statusEl = document.getElementById('status');
-    const pidLabel = document.getElementById('pidLabel');
-    const expiresLabel = document.getElementById('expiresLabel');
-    const viewJsonLink = document.getElementById('viewJsonLink');
+/* ======== refs ======== */
+const form = document.getElementById('form');
+const limitsInfo = document.getElementById('limits-info');
+const carouselArea = document.getElementById('carouselArea');
+const carouselTrack = document.getElementById('carouselTrack');
+const carouselDots = document.getElementById('carouselDots');
+const carouselCounter = document.getElementById('carouselCounter');
+const carouselProgress = document.getElementById('carouselProgress');
+const btnPlay = document.getElementById('carouselPlay');
+const btnPrev = document.getElementById('navPrev');
+const btnNext = document.getElementById('navNext');
+const btnOrigen = document.getElementById('btnOrigen');
+const btnDestino = document.getElementById('btnDestino');
+const pidLabel = document.getElementById('pidLabel');
+const expiresLabel = document.getElementById('expiresLabel');
 
-    const btnDownloadFull = document.getElementById('btnDownloadFull');
-    const btnDownloadById  = document.getElementById('btnDownloadById');
-    const btnReassemble    = document.getElementById('btnReassemble');
-    const btnShowSummary   = document.getElementById('btnShowSummary');
+const summaryWrap = document.getElementById('summary_wrap');
+const btnToggleSummary = document.getElementById('btnToggleSummary');
+const summaryContent = document.getElementById('summary_content');
+const summaryBox = document.getElementById('summary_box');
 
-    const limitsInfo = document.getElementById('limits-info');
-    limitsInfo.textContent = `Límites: archivo ≤ ${Math.round(MAX_UPLOAD_BYTES/1024)} KB, MTU entre ${MIN_MTU} y ${MAX_MTU}.`;
+const statusMsg = document.getElementById('statusMsg');
+const limitsText = document.getElementById('limitsText');
 
-  // ====== Estado ======
-    let currentPid = null;
-    let expireTimer = null;
+const statusEl = document.getElementById('statusMsg');
 
-  // Resumen diferido
-    let pendingSummary = null;
-    let summaryVisible = false;
+/* ======== estado ======== */
+let serverResponse = null;   // respuesta completa del /process
+let encapsulationSteps = []; // pasos 0..6
+let decapsulationSteps = []; // pasos 7..
+let activeSlides = [];       // slides actualmente en carousel (array of {title, detail})
+let slideIdx = 0;
+let autoTimer = null;
+let expireTimer = null;
 
-  // Carousel state
-    const track = document.getElementById('carouselTrack');
-    const dots  = document.getElementById('carouselDots');
-    const counter = document.getElementById('carouselCounter');
-    const btnPrev = document.getElementById('navPrev');
-    const btnNext = document.getElementById('navNext');
-    const btnPlay = document.getElementById('carouselPlay');
-    const progress = document.getElementById('carouselProgress');
+/* ======== icon helper ======== */
+function iconFor(title=''){
+  const t = (title||'').toLowerCase();
+  if (t.includes('envío') || t.includes('envio') || t.includes('envÍo')) return '📤';
+  if (t.includes('recepción') || t.includes('recepcion')) return '📥';
+  if (t.includes('application')) return '🧑‍💻';
+  if (t.includes('presentation')) return '🧩';
+  if (t.includes('session')) return '💬';
+  if (t.includes('transport')) return '✂️';
+  if (t.includes('network')) return '🌐';
+  if (t.includes('data link')) return '🔗';
+  if (t.includes('physical')) return '📡';
+  return '📦';
+}
 
-    let slides = [];    // [{title, detail}, ...]
-    let idx = 0;
-    let autoTimer = null;
+/* ======== carousel building & rendering ======== */
+function buildCarouselFromSteps(stepsArr){
+  activeSlides = Array.isArray(stepsArr) ? stepsArr.map(s => ({title: s.title || '', detail: s.detail || ''})) : [];
+  renderCarousel();
+}
 
-  // ====== Submit ======
-    form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    statusEl.textContent = 'Procesando…';
-    summaryBox.textContent = '';
-    summaryBox.classList.add('skeleton');
-    btnShowSummary.disabled = true;
-    btnShowSummary.textContent = 'Mostrar resumen';
-    summaryVisible = false;
+function renderCarousel(){
+  carouselTrack.innerHTML = '';
+  carouselDots.innerHTML = '';
+  slideIdx = 0;
+  stopAuto();
 
-    // Validar MTU
-    const mtuEl = document.getElementById('mtu');
-    let mtuVal = parseInt(mtuEl.value || '50', 10);
-    if (isNaN(mtuVal)) mtuVal = 50;
-    mtuVal = Math.max(MIN_MTU, Math.min(MAX_MTU, mtuVal));
-    mtuEl.value = mtuVal;
-
-    // FormData
-    const fd = new FormData(form);
-    const file = document.getElementById('file').files[0];
-    if (file && file.size > MAX_UPLOAD_BYTES){
-    statusEl.textContent = `Archivo demasiado grande (${Math.round(file.size/1024)} KB)`;
-    summaryBox.classList.remove('skeleton');
-    summaryBox.textContent = 'Cancelado: archivo demasiado grande.';
+  if (!activeSlides.length){
+    carouselArea.style.display = 'none';
+    carouselCounter.textContent = `Paso 0/0`;
+    carouselProgress.style.width = '0%';
     return;
-    }
+  }
 
-    try{
-    const res = await fetch('/process', { method:'POST', body: fd });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch { throw new Error(`Respuesta no-JSON (${res.status})\n${text}`); }
-    if (!res.ok) throw new Error(data?.detail ? JSON.stringify(data.detail) : `HTTP ${res.status}`);
-
-    onProcessComplete(data);
-    }catch(err){
-    summaryBox.classList.remove('skeleton');
-    statusEl.textContent = 'Error en la solicitud';
-    summaryBox.textContent = String(err);
-    }
-    });
-
-  // ====== Helpers ======
-    function formatSummary(s){
-    const lines = [];
-    lines.push(`- Application (Interfaz de Usuario):`);
-    lines.push(`- Presentation (Codificador):`);
-    if (s.Presentation){
-    lines.push(`type: ${s.Presentation.type}`);
-    lines.push(`raw_bytes_len: ${s.Presentation.raw_bytes_len}`);
-    lines.push(`encoding: ${s.Presentation.encoding}`);
-    }
-    lines.push(`- Transport:`);
-    if (s.Transport){
-    lines.push(`requested_mtu: ${s.Transport.requested_mtu}`);
-    lines.push(`total_len: ${s.Transport.total_len}`);
-    lines.push(`fragments_count: ${s.Transport.fragments_count}`);
-    (s.Transport.fragments || []).forEach(f => lines.push(`- ${f}`));
-    }
-    lines.push(`- Network:`);
-    if (s.Network) lines.push(`network_fragments: ${s.Network.network_fragments}`);
-    lines.push(`- Physical (Transmisión Visual):`);
-    if (s.Physical) lines.push(`logs: ${s.Physical.logs?.length || 0} entries`);
-    return lines.join('\n');
-    }
-
-    function startExpireCountdown(seconds){
-    if (expireTimer) clearInterval(expireTimer);
-    let remaining = Math.max(0, parseInt(seconds || 0, 10));
-    const tick = ()=>{
-    const m = Math.floor(remaining/60);
-    const s = remaining%60;
-    expiresLabel.textContent = `expira en ${m}:${String(s).padStart(2,'0')}`;
-    remaining = Math.max(0, remaining-1);
-    };
-    tick();
-    expireTimer = setInterval(tick, 1000);
-    }
-
-  // ====== Carousel utils ======
-    function iconFor(title='') {
-    const t = title.toLowerCase();
-    if (t.includes('application'))  return '🧑‍💻';
-    if (t.includes('presentation')) return '🧩';
-    if (t.includes('transport'))    return '✂️';
-    if (t.includes('network'))      return '🌐';
-    if (t.includes('physical'))     return '📡';
-    return '📦';
-    }
-
-    function buildCarousel(stepArray){
-    slides = Array.isArray(stepArray) ? stepArray : [];
-    track.innerHTML = '';
-    dots.innerHTML = '';
-    idx = 0;
-    stopAuto();
-
-    slides.forEach((s, i)=>{
+  carouselArea.style.display = '';
+  activeSlides.forEach((s,i)=>{
     const slide = document.createElement('div');
     slide.className = 'slide';
-    slide.innerHTML = `
-        <div class="slide-card">
-        <h4><span class="ic">${iconFor(s.title)}</span>${s.title || 'Layer'}</h4>
-        <div class="detail">${(s.detail || '').replaceAll('<','&lt;').replaceAll('>','&gt;')}</div>
-        </div>
-    `;
-    track.appendChild(slide);
-
-    const d = document.createElement('div');
-    d.className = 'dot' + (i===0?' active':'');
-    d.onclick = ()=> goTo(i);
-    dots.appendChild(d);
-    });
-
-    updateCarousel();
-    }
-
-    function updateCarousel(){
-    const x = -idx * 100;
-    track.style.transform = `translateX(${x}%)`;
-    counter.textContent = `Paso ${slides.length ? idx+1 : 0}/${slides.length}`;
-    Array.from(dots.children).forEach((d,i)=> d.classList.toggle('active', i===idx));
-    if (progress && slides.length) {
-      progress.style.width = `${((idx + 1) / slides.length) * 100}%`;
-    }
-    }
-
-    function next(){ if (!slides.length) return; idx = (idx+1) % slides.length; updateCarousel(); }
-    function prev(){ if (!slides.length) return; idx = (idx-1+slides.length) % slides.length; updateCarousel(); }
-    function goTo(i){ if (!slides.length) return; idx = Math.max(0, Math.min(slides.length-1, i)); updateCarousel(); }
-
-    function play(){
-    if (autoTimer || !slides.length) return;
-    btnPlay.textContent = 'Pause';
-    autoTimer = setInterval(next, 900);
-    }
-    function stopAuto(){
-    if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
-    btnPlay.textContent = 'Play';
-    }
-    document.getElementById('navPrev').onclick = ()=>{ stopAuto(); prev(); };
-    document.getElementById('navNext').onclick = ()=>{ stopAuto(); next(); };
-    btnPlay.onclick = ()=>{ autoTimer ? stopAuto() : play(); };
-
-  // swipe soporte básico (móvil)
-    let startX = null;
-    track.addEventListener('touchstart', e=> startX = e.touches[0].clientX);
-    track.addEventListener('touchend', e=>{
-    if (startX===null) return;
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 40){ dx<0 ? next() : prev(); }
-    startX = null;
-    });
-
-  // ====== Botón Mostrar/Ocultar resumen ======
-    btnShowSummary.onclick = ()=>{
-    if (!pendingSummary) return;
-    summaryVisible = !summaryVisible;
-    if (summaryVisible){
-    summaryBox.textContent = formatSummary(pendingSummary);
-    btnShowSummary.textContent = 'Ocultar resumen';
+    let detailHtml = s.detail || '';
+    const maybeImg = /data:image\/[a-zA-Z]+;base64,/.test(detailHtml);
+    if (maybeImg) {
+      detailHtml = detailHtml.replace(/(data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+)([\s\S]*)/, (m, g1, g2) => {
+        return `<img src="${g1}" alt="imagen"/><div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(g2||'')}</div>`;
+      });
     } else {
-    summaryBox.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
-    btnShowSummary.textContent = 'Mostrar resumen';
+      detailHtml = escapeHtml(detailHtml);
     }
-    };
+    slide.innerHTML = `<div class="slide-card"><h4><span class="ic">${iconFor(s.title)}</span>${escapeHtml(s.title)}</h4><div class="detail">${detailHtml}</div></div>`;
+    carouselTrack.appendChild(slide);
 
-  // ====== Acciones auxiliares ======
-    btnDownloadFull.onclick = async ()=>{
-    if (!currentPid) return;
-    const r = await fetch(`/result/${currentPid}`);
-    const blob = new Blob([await r.text()], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `result_${currentPid}.json`;
-    a.click();
-    };
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i===0 ? ' active' : '');
+    dot.onclick = () => { stopAuto(); goTo(i); };
+    carouselDots.appendChild(dot);
+  });
 
-    btnDownloadById.onclick = ()=>{
-    if (!currentPid) return;
-    window.location.href = `/download/${currentPid}`;
-    };
+  updateCarouselUI();
+}
 
-    btnReassemble.onclick = async ()=>{
-    if (!currentPid) return;
-    const fd = new FormData();
-    fd.append('pid', currentPid);
-    const sel = document.getElementById('deliveries_select');
-    if (sel && sel.value) fd.append('dst_ip', sel.value);
-    const r = await fetch('/reassemble', { method:'POST', body: fd });
-    statusEl.textContent = r.ok ? 'Reensamblado OK' : `Error HTTP ${r.status}`;
-    };
+function escapeHtml(str){
+  return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
 
-    function renderDeliveries(deliveriesSummary){
-    const panel = document.getElementById('deliveries-panel');
-    const select = document.getElementById('deliveries_select');
-    select.innerHTML = '';
-    if (!deliveriesSummary || !deliveriesSummary.length){
-    panel.style.display = 'none';
+function updateCarouselUI(){
+  const x = -slideIdx * 100;
+  carouselTrack.style.transform = `translateX(${x}%)`;
+  carouselCounter.textContent = `Paso ${activeSlides.length ? (slideIdx+1) : 0}/${activeSlides.length}`;
+  const percent = activeSlides.length ? ((slideIdx+1)/activeSlides.length)*100 : 0;
+  carouselProgress.style.width = `${percent}%`;
+  Array.from(carouselDots.children).forEach((d,i)=> d.classList.toggle('active', i===slideIdx));
+}
+
+function nextSlide(){ if (!activeSlides.length) return; slideIdx = (slideIdx + 1) % activeSlides.length; updateCarouselUI(); }
+function prevSlide(){ if (!activeSlides.length) return; slideIdx = (slideIdx - 1 + activeSlides.length) % activeSlides.length; updateCarouselUI(); }
+function goTo(i){ if (!activeSlides.length) return; slideIdx = Math.max(0, Math.min(activeSlides.length-1, i)); updateCarouselUI(); }
+
+function playLoop(){
+  if (autoTimer || !activeSlides.length) return;
+  btnPlay.textContent = 'Pause';
+  autoTimer = setInterval(() => { nextSlide(); }, 1800); // velocidad reducida: 1800ms
+}
+function stopAuto(){
+  if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+  btnPlay.textContent = 'Play';
+}
+btnPrev.onclick = ()=>{ stopAuto(); prevSlide(); };
+btnNext.onclick = ()=>{ stopAuto(); nextSlide(); };
+btnPlay.onclick = ()=>{ autoTimer ? stopAuto() : playLoop(); };
+
+/* ======== form submit & flow ======== */
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  // mostrar estado inicial (limpieza)
+  statusEl.classList.remove('status-success','status-error');
+  statusEl.textContent = '';
+  limitsText.textContent = `Límites: archivo ≤ 50 MB, MTU entre ${MIN_MTU} y ${MAX_MTU}.`;
+  summaryWrap.style.display = 'none';
+  carouselArea.style.display = 'none';
+  pidLabel.textContent = '';
+  expiresLabel.textContent = '--:--';
+  stopAuto();
+
+  // validate MTU & file
+  const mtuEl = document.getElementById('mtu');
+  let mtu = parseInt(mtuEl.value || '50', 10) || 50;
+  mtu = Math.max(MIN_MTU, Math.min(MAX_MTU, mtu));
+  mtuEl.value = mtu;
+
+  const file = document.getElementById('file').files[0];
+  if (file && file.size > MAX_UPLOAD_BYTES){
+    // show error
+    statusEl.classList.add('status-error');
+    statusEl.textContent = `Error: Archivo demasiado grande (${(file.size/(1024*1024)).toFixed(1)} MB)`;
     return;
-    }
-    panel.style.display = '';
-    deliveriesSummary.forEach((d, i)=>{
-    const opt = document.createElement('option');
-    opt.value = d.dst_ip;
-    opt.textContent = `${d.dst_ip} — ${d.fragments} frags`;
-    if (i===0) opt.selected = true;
-    select.appendChild(opt);
-    });
-    }
+  }
 
-  // ====== Al completar /process ======
-    function onProcessComplete(resp){
-    summaryBox.classList.remove('skeleton');
-
-    currentPid = resp.pid || null;
-    pidLabel.textContent = currentPid || '';
-    viewJsonLink.href = currentPid ? `/result/${currentPid}` : '#';
-
-    // Resumen diferido (no mostrar hasta botón)
-    pendingSummary = resp.summary || {};
-    summaryVisible = false;
-    summaryBox.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
-    btnShowSummary.disabled   = false;
-    btnDownloadFull.disabled  = false;
-    btnReassemble.disabled    = false;
-    btnDownloadById.disabled  = false;
-
-    // Carousel con pasos
-    buildCarousel(resp.steps || []);
-    stopAuto(); // inicia pausado
-
-    // Expiración e info extra
-    startExpireCountdown(resp.expires_in || 0);
-    renderDeliveries(resp.deliveries_summary || []);
-
+  const fd = new FormData(form);
+  try{
+    const res = await fetch('/process', { method: 'POST', body: fd });
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch(e) { throw new Error(`Respuesta no JSON: HTTP ${res.status}`); }
+    if (!res.ok) throw new Error(json?.detail ? (typeof json.detail === 'string' ? json.detail : JSON.stringify(json.detail)) : `HTTP ${res.status}`);
+    // Éxito: mostramos "Listo ✔" con animación y luego cargamos pasos
+    onProcessComplete(json);
+    // SALTO / animación de Listo ✔ (visual)
+    statusEl.classList.remove('status-error');
+    statusEl.classList.add('status-success');
     statusEl.textContent = 'Listo ✔';
+    // después de la animación dejamos el texto con process_id y límites
+    setTimeout(() => {
+      statusEl.classList.remove('status-success');
+      // mostrar texto final con process_id y límites
+      const pid = json.pid || '';
+      statusEl.innerHTML = `Listo ✔  |  <span style="color:var(--accent)">process_id:</span> <code>${pid}</code>`;
+      // mantener límites a la vista
+      limitsText.textContent = `Límites: archivo ≤ 50 MB, MTU entre ${MIN_MTU} y ${MAX_MTU}.`;
+    }, 900); // coincide con la duración de la animación
+  }catch(err){
+    statusEl.classList.remove('status-success');
+    statusEl.classList.add('status-error');
+    statusEl.textContent = `Error: ${String(err)}`;
+    console.error(err);
+  }
+});
+
+/* ======== onProcessComplete ======== */
+function onProcessComplete(resp){
+  serverResponse = resp;
+  pidLabel.textContent = resp.pid || '';
+  startExpireCountdown(resp.expires_in || 0);
+
+  // split steps (busca 'recepción' como separador)
+  const steps = Array.isArray(resp.steps) ? resp.steps.slice() : [];
+  let splitIndex = steps.findIndex(s => (s.title || '').toLowerCase().includes('recepción') || (s.title || '').toLowerCase().includes('recepcion') );
+  if (splitIndex === -1) splitIndex = Math.ceil(steps.length / 2);
+  encapsulationSteps = steps.slice(0, splitIndex);
+  decapsulationSteps = steps.slice(splitIndex);
+
+  // show controls
+  summaryWrap.style.display = '';
+  btnToggleSummary.disabled = false;
+  btnToggleSummary.textContent = 'Mostrar resumen';
+  summaryContent.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
+
+  // default: build encapsulation but do not autoplay (user presses Origen)
+  buildCarouselFromSteps(encapsulationSteps);
+}
+
+/* ======== Origen / Destino buttons: build slides + set active state ======== */
+function setActiveButton(isOrigen){
+  if (isOrigen){
+    btnOrigen.classList.add('active'); btnOrigen.classList.remove('ghost');
+    btnDestino.classList.remove('active'); btnDestino.classList.add('ghost');
+  } else {
+    btnDestino.classList.add('active'); btnDestino.classList.remove('ghost');
+    btnOrigen.classList.remove('active'); btnOrigen.classList.add('ghost');
+  }
+}
+
+btnOrigen.onclick = () => {
+  if (!encapsulationSteps.length){
+    statusEl.classList.add('status-error');
+    statusEl.textContent = 'Error: Procese el payload primero para ver pasos de Origen.';
+    return;
+  }
+  setActiveButton(true);
+  buildCarouselFromSteps(encapsulationSteps);
+  playLoop();
+};
+
+btnDestino.onclick = () => {
+  if (!decapsulationSteps.length){
+    statusEl.classList.add('status-error');
+    statusEl.textContent = 'Error: Procese el payload primero para ver pasos de Destino.';
+    return;
+  }
+  setActiveButton(false);
+  buildCarouselFromSteps(decapsulationSteps);
+  playLoop();
+};
+
+/* ======== summary toggle ======== */
+btnToggleSummary.onclick = () => {
+  if (!serverResponse || !serverResponse.summary) return;
+  if (btnToggleSummary.dataset.shown === '1'){
+    summaryContent.innerHTML = 'Resumen oculto. Presiona "Mostrar resumen".';
+    btnToggleSummary.dataset.shown = '0';
+    btnToggleSummary.textContent = 'Mostrar resumen';
+    return;
+  }
+  const s = serverResponse.summary || {};
+  summaryContent.innerHTML = buildFormattedSummaryHTML(s);
+  btnToggleSummary.dataset.shown = '1';
+  btnToggleSummary.textContent = 'Ocultar resumen';
+};
+
+/* ======== format summary into HTML ======== */
+function buildFormattedSummaryHTML(s){
+  try {
+    const parts = [];
+    parts.push(`<div class="layer-card"><h5>📥 COMPUTADORA ORIGEN (${escapeHtml(s.Network?.src_ip || 'N/A')})</h5>`);
+    parts.push(`<div><strong>Capa 7 (Application):</strong> ${escapeHtml(s.Application?.ui || '')}</div>`);
+    parts.push(`<div><strong>Capa 6 (Presentation):</strong> tipo: ${escapeHtml(s.Presentation?.type || '')}, tamaño: ${escapeHtml(String(s.Presentation?.raw_bytes_len || 0))} bytes</div>`);
+    parts.push(`<div><strong>Capa 5 (Session):</strong> ${escapeHtml(s.Session?.info || '')}</div>`);
+    parts.push(`<div><strong>Capa 4 (Transport):</strong> ${escapeHtml(String(s.Transport?.fragments_count || 0))} segmentos, MTU: ${escapeHtml(String(s.Transport?.requested_mtu || ''))} bytes</div>`);
+    if (Array.isArray(s.Transport?.fragments_info)){
+      parts.push('<ul style="margin:8px 0 0 18px;">' + s.Transport.fragments_info.map(f => `<li>${escapeHtml(f)}</li>`).join('') + '</ul>');
     }
+    parts.push(`<div><strong>Capa 3 (Network):</strong> ${escapeHtml(String(s.Network?.total_packets || 0))} paquetes, proto: ${escapeHtml(s.Network?.protocol || '')}, dst: ${escapeHtml(s.Network?.dst_ip || '')}</div>`);
+    parts.push(`<div><strong>Capa 2 (DataLink):</strong> ${escapeHtml(String(s.DataLink?.total_frames || 0))} tramas, tipo: ${escapeHtml(s.DataLink?.transmission_type || '')}, src: ${escapeHtml(s.DataLink?.src_mac || '')}, dst: ${escapeHtml(s.DataLink?.dst_mac || '')}</div>`);
+    parts.push(`<div><strong>Capa 1 (Physical):</strong> ${escapeHtml((s.Physical?.logs && s.Physical.logs[0]) || '')}</div>`);
+    parts.push('</div>');
+
+    parts.push(`<div class="layer-card"><h5>📤 COMPUTADORA DESTINO (${escapeHtml(s.Receiver?.dst_ip || 'N/A')})</h5>`);
+    parts.push(`<div><strong>Capa 1 (Physical):</strong> Tramas recibidas.</div>`);
+    parts.push(`<div><strong>Capa 2 (DataLink):</strong> Tramas validadas (MAC: ${escapeHtml(s.Receiver?.dst_mac || '')}), cabecera quitada.</div>`);
+    parts.push(`<div><strong>Capa 3 (Network):</strong> Paquetes validados (IP: ${escapeHtml(s.Receiver?.dst_ip || '')}), cabecera quitada.</div>`);
+    parts.push(`<div><strong>Capa 4 (Transport):</strong> ${escapeHtml(String(s.Transport?.fragments_count || 0))} segmentos reensamblados.</div>`);
+    parts.push(`<div><strong>Capa 5 (Session):</strong> Sesión validada, datos entregados.</div>`);
+    parts.push(`<div><strong>Capa 6 (Presentation):</strong> Datos decodificados (Base64 -> ${escapeHtml(s.Presentation?.type || '')}).</div>`);
+    parts.push(`<div><strong>Capa 7 (Application):</strong> Datos entregados a la aplicación final.</div>`);
+    parts.push('</div>');
+
+    return parts.join('');
+  } catch(e){
+    console.error(e);
+    return `<pre>${escapeHtml(JSON.stringify(s, null, 2))}</pre>`;
+  }
+}
+
+/* ======== expire countdown ======== */
+function startExpireCountdown(seconds){
+  if (expireTimer) clearInterval(expireTimer);
+  let rem = Math.max(0, parseInt(seconds || 0, 10));
+  const tick = () => {
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    expiresLabel.textContent = `expira en ${m}:${String(s).padStart(2,'0')}`;
+    if (rem <= 0){ clearInterval(expireTimer); expireTimer = null; expiresLabel.textContent = '(expirado)'; }
+    rem = Math.max(0, rem - 1);
+  };
+  tick();
+  expireTimer = setInterval(tick, 1000);
+}
+
+/* ======== swipe support ======== */
+let startX = null;
+carouselTrack.addEventListener('touchstart', e=> startX = e.touches[0].clientX);
+carouselTrack.addEventListener('touchend', e=>{
+  if (startX===null) return;
+  const dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) > 40){ dx < 0 ? nextSlide() : prevSlide(); }
+  startX = null;
+});
 </script>
 </body>
 </html>
