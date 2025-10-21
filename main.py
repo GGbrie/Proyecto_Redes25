@@ -111,10 +111,10 @@ def network_layer_by_destination(
 ) -> Dict[str, List[dict]]:
     """
     Llama tu network_layer original para cada destino y agrega metadata mínima.
-    Estructura devuelta:
+    Estructura devuelta (ejemplo):
     {
-    "10.0.0.2": [ { "network_header": {...}, "transport": {...}, ... }, ... ],
-    "10.0.0.3": [ ... ]
+    "10.0.0.2": [ { "network_header": { /* ... */ }, "transport": { /* ... */ }, /* más campos */ }, /* más fragmentos */ ],
+    "10.0.0.3": [ /* lista de paquetes para ese destino */ ]
     }
     """
     packets_by_dst: Dict[str, List[dict]] = {}
@@ -185,18 +185,21 @@ async def index(request: Request):
 # Almacén en memoria simple: id -> dict {created, response, fragments, type, filename}
 PROCESS_STORE: Dict[str, Dict[str, Any]] = {}
 
-from fastapi import FastAPI, UploadFile, File, Form
+from typing import Optional
+from fastapi import Form, UploadFile, File
 
 @app.post("/process")
 async def process(
     payload_text: str = Form(None),
+    text: Optional[str] = Form(None),
     file: UploadFile = File(None),
     mtu: int = Form(20),
     src_ip: str = Form("10.0.0.1"),
     dst_ip: str = Form("10.0.0.2"),
-    transmission_type: "TransmissionType" = Form("unicast"),
+    transmission_type: TransmissionType = Form(TransmissionType.unicast),
     dst_list: str = Form("")
 ):
+	
     # 1) Lee bytes del archivo (si viene)
     file_bytes = None
     if file is not None:
@@ -255,52 +258,73 @@ async def process(
 
 @app.get("/health")
 async def health():
-	return JSONResponse({"status": "ok"})
+	return {"status": "ok"}
 
 # Nuevo endpoint: reensamblar fragments en destino
 @app.post("/reassemble")
-async def reassemble(pid: str = Form(...), dst_ip: str = Form(None)):
+async def reassemble(pid: str = Form(None), dst_ip: str = Form(None)):
     """
     Reensambla por destino. Si no se envía dst_ip, usa el primero.
+    Devuelve siempre un diccionario (JSON serializable).
     """
+    if not pid:
+        raise HTTPException(status_code=400, detail={"error": "missing_pid", "message": "pid es requerido"})
+
     proc = PROCESS_STORE.get(pid)
     if not proc:
-        return {"error": "not_found"}
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "process_id no existe"})
 
     deliveries = proc.get("deliveries", {})
     if not deliveries:
-        return {"error": "no_deliveries"}
+        raise HTTPException(status_code=400, detail={"error": "no_deliveries", "message": "No hay entregas para este proceso"})
 
     if not dst_ip:
         dst_ip = proc["meta"]["dst_ips"][0]
 
     if dst_ip not in deliveries:
-        return {"error": "destination_not_found"}
+        raise HTTPException(status_code=404, detail={"error": "destination_not_found", "message": "Destino no encontrado"})
 
     fragments = deliveries[dst_ip]["fragments"]
 
-    # Usa tu lógica actual de reensamble (ordenar por transport_seq, validar total, etc.)
-    # reassembled_bytes = ...
-    # deliveries[dst_ip]["reassembled"] = reassembled_bytes
+    # Reensamblado: ordenar por transport_header.seq o por transport_header.transport_seq
+    try:
+        fragments_sorted = sorted(
+            fragments,
+            key=lambda f: (
+                f.get('transport_header', {}).get('seq') or f.get('header', {}).get('transport_seq') or 0
+            )
+        )
+    except Exception:
+        fragments_sorted = fragments
 
-    return {
-        "pid": pid,
-        "dst_ip": dst_ip,
-        "status": "ok",
-        # Puedes devolver un hash/len del reensamble o el resultado según tu API actual
-        # "size": len(reassembled_bytes)
-    }
+    parts = []
+    for f in fragments_sorted:
+        p_b64 = f.get("payload_b64", "")
+        if not p_b64:
+            continue
+        try:
+            part = base64.b64decode(p_b64.encode("ascii"))
+        except Exception:
+            part = b""
+        parts.append(part)
+
+    reassembled_bytes = b"".join(parts)
+    deliveries[dst_ip]["reassembled"] = reassembled_bytes
+
+    return {"pid": pid, "dst_ip": dst_ip, "status": "ok", "size": len(reassembled_bytes)}
 
 # Nuevo endpoint: descargar reensamblado como archivo (stream)
 @app.post("/download")
-async def download(payload: Dict[str, Any] = Body(...)):
+async def download(payload: Dict[str, Any] = Body(None)):
 	"""
 	Recibe el mismo JSON que /reassemble y devuelve el contenido reensamblado como attachment.
 	"""
+	if not payload or not isinstance(payload, dict):
+		raise HTTPException(status_code=400, detail={"error": "invalid_payload", "message": "Se requiere un JSON en el cuerpo"})
 	try:
 		fragments = payload.get("fragments") or []
 		if not isinstance(fragments, list) or len(fragments) == 0:
-			return JSONResponse({"error": "no_fragments", "message": "No se recibieron fragments"}, status_code=400)
+			raise HTTPException(status_code=400, detail={"error": "no_fragments", "message": "No se recibieron fragments"})
 
 		# ordenar y concatenar como en reassemble
 		try:
@@ -322,7 +346,7 @@ async def download(payload: Dict[str, Any] = Body(...)):
 		size = len(reassembled_bytes)
 
 		if size == 0:
-			return JSONResponse({"error": "empty_payload", "message": "El payload reensamblado está vacío"}, status_code=400)
+			raise HTTPException(status_code=400, detail={"error": "empty_payload", "message": "El payload reensamblado está vacío"})
 
 		# Nombre y tipo
 		filename = payload.get("filename") or "reassembled.bin"
@@ -336,7 +360,7 @@ async def download(payload: Dict[str, Any] = Body(...)):
 		headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
 		return StreamingResponse(stream, media_type=content_type, headers=headers)
 	except Exception as e:
-		return JSONResponse({"error": "internal_error", "message": str(e)}, status_code=500)
+		raise HTTPException(status_code=500, detail={"error": "internal_error", "message": str(e)})
 
 # Nuevo: obtener resultado por id
 @app.get("/result/{pid}")
@@ -344,17 +368,17 @@ async def get_result(pid: str):
 	item = PROCESS_STORE.get(pid)
 	# comprobar existencia y expiración
 	if not item:
-		return JSONResponse({"error": "not_found", "message": "process_id no existe"}, status_code=404)
+		raise HTTPException(status_code=404, detail={"error": "not_found", "message": "process_id no existe"})
 	if item.get("expires", 0) <= time.time():
 		# eliminar y reportar expirado
 		PROCESS_STORE.pop(pid, None)
-		return JSONResponse({"error": "expired", "message": "process_id expirado"}, status_code=404)
+		raise HTTPException(status_code=404, detail={"error": "expired", "message": "process_id expirado"})
 	# devolver el objeto de respuesta almacenado (no exponer fragments completos si se desea)
 	resp = item.get("response", {})
 	# añadir metadatos
 	resp_meta = {"process_id": pid, "created": item.get("created"), "expires": item.get("expires")}
 	resp_meta.update(resp)
-	return JSONResponse(resp_meta)
+	return resp_meta
 
 # Nuevo: descargar por id (GET)
 @app.get("/download/{pid}")
@@ -380,7 +404,7 @@ async def download_by_id(pid: str):
 		parts.append(part)
 	reassembled_bytes = b"".join(parts)
 	if len(reassembled_bytes) == 0:
-		return JSONResponse({"error": "empty_payload", "message": "El payload reensamblado está vacío"}, status_code=400)
+		raise HTTPException(status_code=400, detail={"error": "empty_payload", "message": "El payload reensamblado está vacío"})
 	filename = item.get("filename") or "reassembled.bin"
 	content_type = "application/octet-stream"
 	if item.get("type") == "text":
