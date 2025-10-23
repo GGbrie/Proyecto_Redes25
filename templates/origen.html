@@ -46,7 +46,7 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
 .row{display:flex;gap:10px;align-items:center}
 .row>label{min-width:130px}
 
-.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;letter-spacing:.2px;transition:transform .05s ease, filter .15s ease}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;letter-spacing:.2px;transition:transform .05s ease, filter .15s ease; text-decoration: none; }
 .btn:hover{filter:brightness(0.96)}
 .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
 .btn.primary{background:linear-gradient(135deg,#0c7ff1,#0a6bd1)}
@@ -145,7 +145,7 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
       <button type="submit" class="btn primary"> // Procesar //</button>
       <button type="button" id="btnOrigen" class="btn">🖥️ Computadora Origen</button>
-      <button type="button" id="btnDestino" class="btn ghost">🖥️ Computadora Destino</button>
+      <a href="/destino" target="_blank" class="btn" style="background-color:var(--success); border-color:var(--success); display: inline-flex; align-items: center;">Ir a Receptor (Destino) ↗</a>
     </div>
   </form>
 

@@ -33,14 +33,9 @@ app = FastAPI()
 
 if os.path.isdir("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
-
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="templates") 
 # Almacén en memoria:
 PROCESS_STORE: Dict[str, Dict[str, Any]] = {}
-
-# =========================
-# Capas 
-# =========================
 def presentation_layer(payload_text: Optional[str], file_bytes: Optional[bytes]) -> dict:
     """
     (Capa 6) Devuelve un diccionario con el payload en base64 y metadatos.
@@ -270,15 +265,28 @@ def build_decapsulation_steps(summary: dict) -> List[dict]:
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     try:
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse("origen.html", {"request": request})
     except Exception:
         html = """
         <html><body>
-        <h2>Simulador de Protocolo</h2>
-        <p>La plantilla no está disponible. Prueba /health para comprobar el servicio.</p>
+        <h2>Simulador de Protocolo - Origen</h2>
+        <p>Error: No se encontró 'templates/origen.html'. Asegúrate de que el archivo existe en la carpeta 'templates'.</p>
         </body></html>
         """
-        return HTMLResponse(html, status_code=200)
+        return HTMLResponse(html, status_code=500)
+    
+@app.get("/destino", response_class=HTMLResponse)
+async def get_destino(request: Request):
+    try:
+        return templates.TemplateResponse("destino.html", {"request": request})
+    except Exception:
+        html = """
+        <html><body>
+        <h2>Simulador de Protocolo - Destino</h2>
+        <p>Error: No se encontró 'templates/destino.html'. Asegúrate de que el archivo existe en la carpeta 'templates'.</p>
+        </body></html>
+        """
+        return HTMLResponse(html, status_code=500)
 
 
 @app.get("/health")
@@ -325,7 +333,7 @@ async def process(
     steps = encapsulation_steps + decapsulation_steps
 
     # Persistencia
-    pid = str(uuid.uuid4())
+    pid = str(uuid.uuid4())[:8]
     PROCESS_STORE[pid] = {
         "created": created,
         "expires": expires,
@@ -361,7 +369,6 @@ async def process(
         "steps": steps,
         "expires_in": max(0, int(expires - time.time())),
     }
-
 
 @app.post("/reassemble")
 async def reassemble(pid: str = Form(None), dst_ip: str = Form(None)):

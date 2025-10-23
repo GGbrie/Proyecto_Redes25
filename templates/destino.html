@@ -1,0 +1,443 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Simulador - Computadora Destino</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
+  --panel: #ffffffee;
+  --muted: #496dac;
+  --accent: #0c7ff1;
+  --accent-2: #0658a5;
+  --border: #b5c9e6;
+  --text: #0d1b2a;
+  --success: #16a34a;
+  --danger: #e03131;
+}
+:root.dark{
+  --bg: linear-gradient(135deg, #0f1720, #1e2a3a);
+  --panel: #162132;
+  --muted: #9aa4b2;
+  --accent: #60a5fa;
+  --accent-2: #4d9eff;
+  --border: #2c3e50;
+  --text: #e6eef9;
+  --success: #34d399;
+  --danger: #fb7185;
+}
+
+*{box-sizing:border-box}
+body{font-family:Inter,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--text);min-height:100vh}
+.container{max-width:980px;margin:0 auto;background:var(--panel);padding:20px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
+
+.hero{background:linear-gradient(135deg,#0c7ff1,#4dabff);color:#fff;padding:14px 16px;border-radius:12px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hero .badge{background:#ffffff20;border:1px solid #ffffff40;padding:6px 10px;border-radius:999px;font-size:12px}
+
+form{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+label{font-weight:600}
+textarea,input[type="text"],input[type="number"],input[type="file"],select{
+  width:100%;border:1px solid var(--border);border-radius:8px;padding:8px;background:#f8faff;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+textarea:hover,input:hover,select:hover{border-color:#97b6ea}
+textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shadow:0 0 0 3px rgba(77,158,255,.14)}
+.row{display:flex;gap:10px;align-items:center}
+.row>label{min-width:130px}
+
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;letter-spacing:.2px;transition:transform .05s ease, filter .15s ease}
+.btn:hover{filter:brightness(0.96)}
+.btn.ghost{background:#83e65c;color:var(--accent);border:1px solid var(--border)}
+.btn.primary{background:linear-gradient(135deg,#0c7ff1,#0a6bd1)}
+.btn.active{background:linear-gradient(135deg,#0a61c6,#0c7ff1);color:#fff;box-shadow:0 8px 20px rgba(12,127,241,.18);border:0}
+
+@keyframes jump {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+  60% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+
+.carousel-wrap{margin-top:8px}
+.carousel-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:8px}
+.carousel-head .left{display:flex;align-items:center;gap:10px}
+.pill{background:#eef4ff;color:#274b8e;border:1px solid #d2e0ff;padding:6px 10px;border-radius:999px;font-size:12px}
+.carousel-viewport{position:relative;overflow:hidden;width:100%;border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+.carousel-track{display:flex;transition:transform .45s ease;will-change:transform}
+.slide{min-width:100%;box-sizing:border-box;padding:16px}
+.slide-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#f9fbff;box-shadow:0 6px 16px rgba(0,0,0,.04);position:relative}
+.slide h4{margin:0 0 8px 0;color:var(--accent);display:flex;align-items:center;gap:8px}
+.slide h4 .ic{font-size:18px;width:22px;text-align:center}
+.slide .detail{white-space:pre-wrap;background:#fff;border:1px dashed #d7e6ff;border-radius:8px;padding:10px;max-height:320px;overflow:auto;line-height:1.5}
+
+.slide .detail img{display:block;max-width:100%;height:auto;margin:10px auto;border-radius:8px;border:1px solid #e0efff;background:#fff;padding:6px}
+.slide .detail p{margin:0 0 8px 0}
+
+.nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:#ffffffcc;border:1px solid var(--border);color:var(--accent);width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter: blur(4px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.nav-btn:hover{background:#fff}
+.nav-prev{left:8px}
+.nav-next{right:8px}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.dot{width:12px;height:12px;border-radius:999px;background:#fff;cursor:pointer;border:1px solid var(--border);transition:transform .15s ease,background .15s ease}
+.dot.active{background:var(--accent);transform:scale(1.15)}
+
+.progress{height:6px;background:#e6eefc;border-radius:999px;overflow:hidden;margin:10px 2px 0 2px;border:1px solid var(--border)}
+.progress>.bar{height:100%;width:0%;background:linear-gradient(135deg,#4dabff,#0c7ff1);transition:width .45s ease}
+
+#summary_wrap{margin-top:14px}
+#summary_box{background:#f9fbff;border:1px solid #b5c9e6;border-radius:12px;padding:12px;font-family:Inter,Arial,sans-serif;white-space:normal;line-height:1.45;box-shadow:0 6px 12px rgba(0,0,0,.04)}
+.summary-title{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--accent);font-weight:700}
+.layer-card{background:#fff;border:1px solid #dbeffd;padding:10px;border-radius:10px;margin-bottom:8px;box-shadow:0 4px 10px rgba(0,0,0,.03)}
+.layer-card h5{margin:0 0 6px 0;color:var(--accent);font-size:15px}
+.small-muted{color:var(--muted);font-size:0.92em}
+
+#statusWrap { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+#statusMsg { font-weight:600; font-size:0.98em; }
+.status-success { color: var(--success); animation: jump .8s ease; }
+.status-error   { color: var(--danger); }
+
+.separator {
+  border: none;
+  height: 1px;
+  background-color: var(--border);
+  margin: 20px 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="hero">
+    <div style="font-size:20px">🖥️ Computadora Destino:</div>
+    <span class="badge">Demo interactiva</span>
+  </div>
+
+  <form id="searchForm">
+    <label for="pid_input">Ingresar Process ID de la transmisión:</label>
+    <input id="pid_input" name="pid_input" type="text" placeholder="Pega el process_id aquí..." style="font-family:monospace; letter-spacing: 1px;">
+    
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+      <button type="submit" class="btn primary">Buscar y Desencapsular</button>
+      <a href="/" class="btn ghost">Ir a Origen ↩</a>
+    </div>
+  </form>
+
+  <div id="statusWrap">
+    <div id="statusMsg" class="small-muted"></div>
+  </div>
+
+  <hr class="separator" id="sep1" style="display:none">
+
+  <div class="carousel-wrap" id="carouselArea" style="display:none">
+    <div class="carousel-head">
+      <div class="left">
+        <span class="pill" id="carouselCounter">Esta en la Capa 0/0</span>
+        <button id="carouselPlay" class="btn ghost" type="button">Play</button>
+      </div>
+      <div class="right small-muted">
+        <span id="expiresLabel">Sesión termina en: --:--</span> | El process_id es: <code id="pidLabel"></code>
+      </div>
+    </div>
+
+    <div class="carousel-viewport">
+      <div class="carousel-track" id="carouselTrack"></div>
+      <button class="nav-btn nav-prev" id="navPrev" aria-label="Anterior">‹</button>
+      <button class="nav-btn nav-next" id="navNext" aria-label="Siguiente">›</button>
+    </div>
+
+    <div class="dots" id="carouselDots"></div>
+    <div class="progress"><div id="carouselProgress" class="bar"></div></div>
+  </div>
+
+  <hr class="separator" id="sep2" style="display:none">
+
+  <div id="summary_wrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 style="color:var(--accent);margin:12px 0 8px 0"> = Resumen de Capas = </h3>
+      <button id="btnToggleSummary" class="btn ghost" disabled>Mostrar resumen</button>
+    </div>
+    <div id="summary_box">
+      <div class="summary-title">📋 Resumen de transmisión de capas</div>
+      <div id="summary_content" class="small-muted">Esperando acción…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+/* ======== refs ======== */
+const searchForm = document.getElementById('searchForm'); 
+const pidInput = document.getElementById('pid_input');   
+const carouselArea = document.getElementById('carouselArea');
+const carouselTrack = document.getElementById('carouselTrack');
+const carouselDots = document.getElementById('carouselDots');
+const carouselCounter = document.getElementById('carouselCounter');
+const carouselProgress = document.getElementById('carouselProgress');
+const btnPlay = document.getElementById('carouselPlay');
+const btnPrev = document.getElementById('navPrev');
+const btnNext = document.getElementById('navNext');
+const pidLabel = document.getElementById('pidLabel');
+const expiresLabel = document.getElementById('expiresLabel');
+
+const summaryWrap = document.getElementById('summary_wrap');
+const btnToggleSummary = document.getElementById('btnToggleSummary');
+const summaryContent = document.getElementById('summary_content');
+const summaryBox = document.getElementById('summary_box');
+
+const statusMsg = document.getElementById('statusMsg');
+const statusEl = document.getElementById('statusMsg');
+
+const sep1 = document.getElementById('sep1');
+const sep2 = document.getElementById('sep2');
+
+/* ======== estado ======== */
+let serverResponse = null;   
+let decapsulationSteps = []; 
+let activeSlides = [];       
+let slideIdx = 0;
+let autoTimer = null;
+let expireTimer = null;
+
+function iconFor(title=''){
+  const t = (title||'').toLowerCase();
+  if (t.includes('envío') || t.includes('envio') || t.includes('envÍo')) return '📤';
+  if (t.includes('recepción') || t.includes('recepcion')) return '📥';
+  if (t.includes('application')) return '🖥️';
+  if (t.includes('presentation')) return '🧩';
+  if (t.includes('session')) return '💬';
+  if (t.includes('transport')) return '✂️';
+  if (t.includes('network')) return '🌐';
+  if (t.includes('data link')) return '🔗';
+  if (t.includes('physical')) return '📡';
+  return '📦';
+}
+
+function buildCarouselFromSteps(stepsArr){
+  activeSlides = Array.isArray(stepsArr) ? stepsArr.map(s => ({title: s.title || '', detail: s.detail || ''})) : [];
+  renderCarousel();
+}
+
+function renderCarousel(){
+  carouselTrack.innerHTML = '';
+  carouselDots.innerHTML = '';
+  slideIdx = 0;
+  stopAuto();
+
+  if (!activeSlides.length){
+    carouselArea.style.display = 'none';
+    carouselCounter.textContent = `Paso 0/0`;
+    carouselProgress.style.width = '0%';
+    return;
+  }
+
+  carouselArea.style.display = '';
+  activeSlides.forEach((s,i)=>{
+    const slide = document.createElement('div');
+    slide.className = 'slide';
+    let detailHtml = s.detail || '';
+    const maybeImg = /data:image\/[a-zA-Z]+;base64,/.test(detailHtml);
+    if (maybeImg) {
+      detailHtml = detailHtml.replace(/(data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+)([\s\S]*)/, (m, g1, g2) => {
+        return `<img src="${g1}" alt="imagen"/><div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(g2||'')}</div>`;
+      });
+    } else {
+      detailHtml = escapeHtml(detailHtml);
+    }
+    slide.innerHTML = `<div class="slide-card"><h4><span class="ic">${iconFor(s.title)}</span>${escapeHtml(s.title)}</h4><div class="detail">${detailHtml}</div></div>`;
+    carouselTrack.appendChild(slide);
+
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i===0 ? ' active' : '');
+    dot.onclick = () => { stopAuto(); goTo(i); };
+    carouselDots.appendChild(dot);
+  });
+
+  updateCarouselUI();
+}
+
+function escapeHtml(str){
+  return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
+
+function updateCarouselUI(){
+  const x = -slideIdx * 100;
+  carouselTrack.style.transform = `translateX(${x}%)`;
+  carouselCounter.textContent = `Paso ${activeSlides.length ? (slideIdx+1) : 0}/${activeSlides.length}`;
+  const percent = activeSlides.length ? ((slideIdx+1)/activeSlides.length)*100 : 0;
+  carouselProgress.style.width = `${percent}%`;
+  Array.from(carouselDots.children).forEach((d,i)=> d.classList.toggle('active', i===slideIdx));
+}
+
+function nextSlide(){ if (!activeSlides.length) return; slideIdx = (slideIdx + 1) % activeSlides.length; updateCarouselUI(); }
+function prevSlide(){ if (!activeSlides.length) return; slideIdx = (slideIdx - 1 + activeSlides.length) % activeSlides.length; updateCarouselUI(); }
+function goTo(i){ if (!activeSlides.length) return; slideIdx = Math.max(0, Math.min(activeSlides.length-1, i)); updateCarouselUI(); }
+
+function playLoop(){
+  if (autoTimer || !activeSlides.length) return;
+  btnPlay.textContent = 'Pausar';
+  autoTimer = setInterval(() => { nextSlide(); }, 1800); 
+}
+function stopAuto(){
+  if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+  btnPlay.textContent = 'Play';
+}
+btnPrev.onclick = ()=>{ stopAuto(); prevSlide(); };
+btnNext.onclick = ()=>{ stopAuto(); nextSlide(); };
+btnPlay.onclick = ()=>{ autoTimer ? stopAuto() : playLoop(); };
+
+/* ======== CAMBIO: Lógica de búsqueda  ======== */
+searchForm.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const pid = pidInput.value.trim();
+  if (!pid) {
+    statusEl.classList.add('status-error');
+    statusEl.textContent = 'Error: Debes ingresar un Process ID.';
+    return;
+  }
+  
+  // Limpiar estado anterior
+  statusEl.classList.remove('status-success','status-error');
+  statusEl.textContent = 'Buscando transmisión...';
+  summaryWrap.style.display = 'none';
+  carouselArea.style.display = 'none';
+  sep1.style.display = 'none';
+  sep2.style.display = 'none';
+  pidLabel.textContent = '';
+  expiresLabel.textContent = 'Sesión termina en: --:--';
+  stopAuto();
+
+
+  try {
+    // Usamos el endpoint /result/{pid} que ya existe en main.py
+    const res = await fetch(`/result/${pid}`);
+    const json = await res.json();
+    
+    if (!res.ok) {
+      // El error de la API (ej: "expired", "not_found") viene en json.detail.message
+      const errorMsg = json.detail?.message || json.detail || `HTTP ${res.status}`;
+      throw new Error(errorMsg);
+    }
+
+    statusEl.classList.remove('status-error');
+    statusEl.classList.add('status-success');
+    statusEl.textContent = '¡Transmisión encontrada! Mostrando desencapsulación... ✔';
+    onProcessComplete(json);
+    
+  } catch(err) {
+    statusEl.classList.remove('status-success');
+    statusEl.classList.add('status-error');
+    statusEl.textContent = `Error: ${err.message}`;
+    console.error(err);
+  }
+});
+
+
+/* ======== CAMBIO: onProcessComplete (Adaptado para Destino) ======== */
+function onProcessComplete(resp){
+  serverResponse = resp;
+  pidLabel.textContent = resp.pid || '';
+  startExpireCountdown(resp.expires_in || 0);
+
+  const steps = Array.isArray(resp.steps) ? resp.steps.slice() : [];
+  let splitIndex = steps.findIndex(s => (s.title || '').toLowerCase().includes('recepción') || (s.title || '').toLowerCase().includes('recepcion') );
+  if (splitIndex === -1) splitIndex = Math.ceil(steps.length / 2);
+  decapsulationSteps = steps.slice(splitIndex);
+
+  summaryWrap.style.display = '';
+  sep1.style.display = 'block';
+  sep2.style.display = 'block';
+  btnToggleSummary.disabled = false;
+  btnToggleSummary.textContent = 'Mostrar resumen';
+  summaryContent.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
+  buildCarouselFromSteps(decapsulationSteps);
+  playLoop(); 
+}
+
+btnToggleSummary.onclick = () => {
+  if (!serverResponse || !serverResponse.summary) return;
+  if (btnToggleSummary.dataset.shown === '1'){
+    summaryContent.innerHTML = 'Resumen oculto. Presiona "Mostrar resumen".';
+    btnToggleSummary.dataset.shown = '0';
+    btnToggleSummary.textContent = 'Mostrar resumen';
+    return;
+  }
+  const s = serverResponse.summary || {};
+  summaryContent.innerHTML = buildFormattedSummaryHTML(s);
+  btnToggleSummary.dataset.shown = '1';
+  btnToggleSummary.textContent = 'Ocultar resumen';
+};
+
+function buildFormattedSummaryHTML(s){
+  try {
+    const parts = [];
+    parts.push(`<div class="layer-card"><h5>📥 COMPUTADORA ORIGEN (${escapeHtml(s.Network?.src_ip || 'N/A')})</h5>`);
+    parts.push(`<div><strong>Capa No.7 = Aplicación:</strong> ${escapeHtml(s.Application?.ui || '')}</div>`);
+    parts.push(`<div><strong>Capa No.6 = Presentación:</strong> tipo: ${escapeHtml(s.Presentation?.type || '')}, tamaño: ${escapeHtml(String(s.Presentation?.raw_bytes_len || 0))} bytes</div>`);
+    parts.push(`<div><strong>Capa No.5 = Sesión:</strong> ${escapeHtml(s.Session?.info || '')}</div>`);
+    parts.push(`<div><strong>Capa No.4 = Trasporte:</strong> ${escapeHtml(String(s.Transport?.fragments_count || 0))} segmentos, MTU: ${escapeHtml(String(s.Transport?.requested_mtu || ''))} bytes</div>`);
+    if (Array.isArray(s.Transport?.fragments_info)){
+      parts.push('<ul style="margin:8px 0 0 18px;">' + s.Transport.fragments_info.map(f => `<li>${escapeHtml(f)}</li>`).join('') + '</ul>');
+    }
+    parts.push(`<div><strong>Capa No.3 = Red:</strong> ${escapeHtml(String(s.Network?.total_packets || 0))} paquetes, proto: ${escapeHtml(s.Network?.protocol || '')}, dst: ${escapeHtml(s.Network?.dst_ip || '')}</div>`);
+    parts.push(`<div><strong>Capa No.2 = Enlace de datos:</strong> ${escapeHtml(String(s.DataLink?.total_frames || 0))} tramas, tipo: ${escapeHtml(s.DataLink?.transmission_type || '')}, src: ${escapeHtml(s.DataLink?.src_mac || '')}, dst: ${escapeHtml(s.DataLink?.dst_mac || '')}</div>`);
+    parts.push(`<div><strong>Capa No.1 = Física:</strong> ${escapeHtml((s.Physical?.logs && s.Physical.logs[0]) || '')}</div>`);
+    parts.push('</div>');
+
+    parts.push(`<div class="layer-card"><h5>📤 COMPUTADORA DESTINO (${escapeHtml(s.Receiver?.dst_ip || 'N/A')})</h5>`);
+    parts.push(`<div><strong>Capa No.1 = Física:</strong> Tramas recibidas.</div>`);
+    parts.push(`<div><strong>Capa No.2 = Enlace de datos:</strong> Tramas validadas (MAC: ${escapeHtml(s.Receiver?.dst_mac || '')}), cabecera quitada.</div>`);
+    parts.push(`<div><strong>Capa No.3 = Red:</strong> Paquetes validados (IP: ${escapeHtml(s.Receiver?.dst_ip || '')}), cabecera quitada.</div>`);
+    parts.push(`<div><strong>Capa No.4 = Trasporte:</strong> ${escapeHtml(String(s.Transport?.fragments_count || 0))} segmentos reensamblados.</div>`);
+    parts.push(`<div><strong>Capa No.5 = Sesión:</strong> Sesión validada, datos entregados.</div>`);
+    parts.push(`<div><strong>Capa No.6 = Presentación:</strong> Datos decodificados (Base64 -> ${escapeHtml(s.Presentation?.type || '')}).</div>`);
+    parts.push(`<div><strong>Capa No.7 = Aplicación:</strong> Datos entregados a la aplicación final.</div>`);
+    parts.push('</div>');
+
+    return parts.join('');
+  } catch(e){
+    console.error(e);
+    return `<pre>${escapeHtml(JSON.stringify(s, null, 2))}</pre>`;
+  }
+}
+
+function startExpireCountdown(seconds){
+  if (expireTimer) clearInterval(expireTimer);
+  let rem = Math.max(0, parseInt(seconds || 0, 10));
+  
+  const tick = () => {
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    expiresLabel.textContent = `Sesión termina en: ${m}:${String(s).padStart(2,'0')}`;
+    if (rem <= 0){ 
+      clearInterval(expireTimer); 
+      expireTimer = null; 
+      expiresLabel.textContent = 'Sesión expirada'; 
+    }
+    rem = Math.max(0, rem - 1);
+  };
+  tick();
+  expireTimer = setInterval(tick, 1000);
+}
+
+/* ======== CAMBIO: Cargar PID desde la URL ======== */
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const pid = params.get('pid');
+  if (pid) {
+    pidInput.value = pid;
+    searchForm.dispatchEvent(new Event('submit'));
+  }
+});
+let startX = null;
+carouselTrack.addEventListener('touchstart', e=> startX = e.touches[0].clientX);
+carouselTrack.addEventListener('touchend', e=>{
+  if (startX===null) return;
+  const dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) > 40){ dx < 0 ? nextSlide() : prevSlide(); }
+  startX = null;
+});
+</script>
+</body>
+</html>
