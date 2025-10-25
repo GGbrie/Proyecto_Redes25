@@ -5,6 +5,7 @@
 <title>Simulador de Protocolo de Comunicación - Proyecto 2025</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
+/* ======== Variables de Color (Tema Claro) ======== */
 :root{
   --bg: linear-gradient(135deg, #e6f0ff, #cfe0ff);
   --panel: #ffffffee;
@@ -16,6 +17,7 @@
   --success: #16a34a;
   --danger: #e03131;
 }
+/* ======== Variables de Color (Tema Oscuro) ======== */
 :root.dark{
   --bg: linear-gradient(135deg, #0f1720, #1e2a3a);
   --panel: #162132;
@@ -28,13 +30,17 @@
   --danger: #fb7185;
 }
 
+/* ======== Estilos Globales ======== */
 *{box-sizing:border-box}
 body{font-family:Inter,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--text);min-height:100vh}
+/* Contenedor principal de la aplicación */
 .container{max-width:980px;margin:0 auto;background:var(--panel);padding:20px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.06)}
 
+/* ======== Cabecera (Hero) ======== */
 .hero{background:linear-gradient(135deg,#0c7ff1,#4dabff);color:#fff;padding:14px 16px;border-radius:12px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .hero .badge{background:#ffffff20;border:1px solid #ffffff40;padding:6px 10px;border-radius:999px;font-size:12px}
 
+/* ======== Formularios y Entradas ======== */
 form{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 label{font-weight:600}
 textarea,input[type="text"],input[type="number"],input[type="file"],select{
@@ -43,15 +49,18 @@ textarea,input[type="text"],input[type="number"],input[type="file"],select{
 }
 textarea:hover,input:hover,select:hover{border-color:#97b6ea}
 textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shadow:0 0 0 3px rgba(77,158,255,.14)}
+/* Clase para filas de formulario (agrupar label + input) */
 .row{display:flex;gap:10px;align-items:center}
 .row>label{min-width:130px}
 
+/* ======== Botones ======== */
 .btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;letter-spacing:.2px;transition:transform .05s ease, filter .15s ease; text-decoration: none; }
 .btn:hover{filter:brightness(0.96)}
 .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
 .btn.primary{background:linear-gradient(135deg,#0c7ff1,#0a6bd1)}
 .btn.active{background:linear-gradient(135deg,#0a61c6,#0c7ff1);color:#fff;box-shadow:0 8px 20px rgba(12,127,241,.18);border:0}
 
+/* Animación para mensajes de estado */
 @keyframes jump {
   0% { transform: translateY(0); }
   30% { transform: translateY(-8px); }
@@ -59,32 +68,38 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
   100% { transform: translateY(0); }
 }
 
+/* ======== Carrusel (Visualizador de Pasos) ======== */
 .carousel-wrap{margin-top:8px}
 .carousel-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:8px}
 .carousel-head .left{display:flex;align-items:center;gap:10px}
 .pill{background:#eef4ff;color:#274b8e;border:1px solid #d2e0ff;padding:6px 10px;border-radius:999px;font-size:12px}
 .carousel-viewport{position:relative;overflow:hidden;width:100%;border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+/* El 'track' contiene todos los 'slides' y se mueve horizontalmente */
 .carousel-track{display:flex;transition:transform .45s ease;will-change:transform}
 .slide{min-width:100%;box-sizing:border-box;padding:16px}
 .slide-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:#f9fbff;box-shadow:0 6px 16px rgba(0,0,0,.04);position:relative}
 .slide h4{margin:0 0 8px 0;color:var(--accent);display:flex;align-items:center;gap:8px}
 .slide h4 .ic{font-size:18px;width:22px;text-align:center}
+/* Contenido detallado de cada paso */
 .slide .detail{white-space:pre-wrap;background:#fff;border:1px dashed #d7e6ff;border-radius:8px;padding:10px;max-height:320px;overflow:auto;line-height:1.5}
-
 .slide .detail img{display:block;max-width:100%;height:auto;margin:10px auto;border-radius:8px;border:1px solid #e0efff;background:#fff;padding:6px}
 .slide .detail p{margin:0 0 8px 0}
 
+/* Botones de navegación del carrusel */
 .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:#ffffffcc;border:1px solid var(--border);color:var(--accent);width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter: blur(4px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
 .nav-btn:hover{background:#fff}
 .nav-prev{left:8px}
 .nav-next{right:8px}
+/* Puntos indicadores del carrusel */
 .dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
 .dot{width:12px;height:12px;border-radius:999px;background:#cfe0ff;cursor:pointer;border:1px solid var(--border);transition:transform .15s ease,background .15s ease}
 .dot.active{background:var(--accent);transform:scale(1.15)}
 
+/* Barra de progreso del carrusel */
 .progress{height:6px;background:#e6eefc;border-radius:999px;overflow:hidden;margin:10px 2px 0 2px;border:1px solid var(--border)}
 .progress>.bar{height:100%;width:0%;background:linear-gradient(135deg,#4dabff,#0c7ff1);transition:width .45s ease}
 
+/* ======== Sección de Resumen ======== */
 #summary_wrap{margin-top:14px}
 #summary_box{background:#f9fbff;border:1px solid #b5c9e6;border-radius:12px;padding:12px;font-family:Inter,Arial,sans-serif;white-space:normal;line-height:1.45;box-shadow:0 6px 12px rgba(0,0,0,.04)}
 .summary-title{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--accent);font-weight:700}
@@ -92,11 +107,13 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
 .layer-card h5{margin:0 0 6px 0;color:var(--accent);font-size:15px}
 .small-muted{color:var(--muted);font-size:0.92em}
 
+/* ======== Mensajes de Estado (Éxito/Error) ======== */
 #statusWrap { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
 #statusMsg { font-weight:600; font-size:0.98em; }
 .status-success { color: var(--success); animation: jump .8s ease; }
 .status-error   { color: var(--danger); }
 
+/* Separador horizontal */
 .separator {
   border: none;
   height: 1px;
@@ -104,6 +121,7 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
   margin: 20px 0;
 }
 
+/* ======== Media Query (Responsivo) ======== */
 @media (max-width:720px){
   .row{flex-direction:column;align-items:stretch}
   .hero{flex-direction:column;align-items:flex-start}
@@ -114,7 +132,7 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
 <div class="container">
 
   <div class="hero">
-    <div style="font-size:20px">📡 Simulador de Protocolo de Comunicación</div>
+    <div style="font-size:20px">📡 Simulador de Protocolo de Comunicación - 2025</div>
     <span class="badge">Demo interactiva</span>
   </div>
 
@@ -122,7 +140,7 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
     <label for="payload_text">Texto:</label>
     <textarea id="payload_text" name="payload_text" rows="4" placeholder="Escribe un mensaje corto..."></textarea>
 
-    <label for="file">O subir imagen:</label>
+    <label for="file">O subir imagen/video:</label>
     <input id="file" name="file" type="file" accept="image/*">
     
     <small id="limits-info" class="small-muted">Límites: archivo ≤ 50 MB === MTU entre 1 y 65535.</small>
@@ -193,10 +211,10 @@ textarea:focus,input:focus,select:focus{outline:0;border-color:#4d9eff;box-shado
 
 <script>
 /* ======== constantes ======== */
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-const MIN_MTU = 1, MAX_MTU = 65535;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB
+const MIN_MTU = 1, MAX_MTU = 65535; // Límites de MTU
 
-/* ======== refs ======== */
+/* ======== refs (Referencias a elementos del DOM) ======== */
 const form = document.getElementById('form');
 const carouselArea = document.getElementById('carouselArea');
 const carouselTrack = document.getElementById('carouselTrack');
@@ -207,7 +225,6 @@ const btnPlay = document.getElementById('carouselPlay');
 const btnPrev = document.getElementById('navPrev');
 const btnNext = document.getElementById('navNext');
 const btnOrigen = document.getElementById('btnOrigen');
-const btnDestino = document.getElementById('btnDestino');
 const pidLabel = document.getElementById('pidLabel');
 const expiresLabel = document.getElementById('expiresLabel');
 
@@ -217,21 +234,21 @@ const summaryContent = document.getElementById('summary_content');
 const summaryBox = document.getElementById('summary_box');
 
 const statusMsg = document.getElementById('statusMsg');
-const statusEl = document.getElementById('statusMsg');
+const statusEl = document.getElementById('statusMsg'); // Referencia duplicada, pero inofensiva
 
 const sep1 = document.getElementById('sep1');
 const sep2 = document.getElementById('sep2');
 
-/* ======== estado ======== */
-let serverResponse = null;   
-let encapsulationSteps = []; 
-let decapsulationSteps = []; 
-let activeSlides = [];       
-let slideIdx = 0;
-let autoTimer = null;
-let expireTimer = null;
+/* ======== estado (Variables globales de estado) ======== */
+let serverResponse = null;   // Almacena la respuesta completa del servidor
+let encapsulationSteps = []; // Pasos de envío (Capas 7 a 1)
+let decapsulationSteps = []; // Pasos de recepción (Capas 1 a 7)
+let activeSlides = [];       // Pasos actualmente mostrados en el carrusel
+let slideIdx = 0;            // Índice del slide actual
+let autoTimer = null;        // Temporizador para el modo 'Play'
+let expireTimer = null;      // Temporizador para la cuenta regresiva de expiración
 
-/* ======== icon helper ======== */
+/* ======== icon helper (Función de ayuda para obtener un emoji) ======== */
 function iconFor(title=''){
   const t = (title||'').toLowerCase();
   if (t.includes('envío') || t.includes('envio') || t.includes('envÍo')) return '📤';
@@ -246,18 +263,23 @@ function iconFor(title=''){
   return '📦';
 }
 
-/* ======== carousel ======== */
+/* ======== carousel (Funciones de lógica del carrusel) ======== */
+
+// Construye el carrusel a partir de un array de pasos
 function buildCarouselFromSteps(stepsArr){
+  // Mapea el array de pasos al formato que necesita el carrusel
   activeSlides = Array.isArray(stepsArr) ? stepsArr.map(s => ({title: s.title || '', detail: s.detail || ''})) : [];
-  renderCarousel();
+  renderCarousel(); // Llama a la función que dibuja el carrusel
 }
 
+// Dibuja (renderiza) el carrusel en el DOM
 function renderCarousel(){
-  carouselTrack.innerHTML = '';
-  carouselDots.innerHTML = '';
-  slideIdx = 0;
-  stopAuto();
+  carouselTrack.innerHTML = ''; // Limpia slides anteriores
+  carouselDots.innerHTML = '';  // Limpia puntos anteriores
+  slideIdx = 0; // Resetea el índice
+  stopAuto();   // Detiene el modo 'Play'
 
+  // Si no hay slides, oculta el área del carrusel
   if (!activeSlides.length){
     carouselArea.style.display = 'none';
     carouselCounter.textContent = `Paso 0/0`;
@@ -265,63 +287,84 @@ function renderCarousel(){
     return;
   }
 
+  // Muestra el área del carrusel si hay slides
   carouselArea.style.display = '';
+  // Itera sobre cada slide y lo crea en el DOM
   activeSlides.forEach((s,i)=>{
     const slide = document.createElement('div');
     slide.className = 'slide';
     let detailHtml = s.detail || '';
+    
+    // Detecta si el detalle es una imagen en base64
     const maybeImg = /data:image\/[a-zA-Z]+;base64,/.test(detailHtml);
     if (maybeImg) {
+      // Si es imagen, la separa del texto y la envuelve en una etiqueta <img>
       detailHtml = detailHtml.replace(/(data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+)([\s\S]*)/, (m, g1, g2) => {
         return `<img src="${g1}" alt="imagen"/><div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(g2||'')}</div>`;
       });
     } else {
+      // Si no es imagen, solo escapa el HTML
       detailHtml = escapeHtml(detailHtml);
     }
+    
+    // Inserta el HTML del slide en el track
     slide.innerHTML = `<div class="slide-card"><h4><span class="ic">${iconFor(s.title)}</span>${escapeHtml(s.title)}</h4><div class="detail">${detailHtml}</div></div>`;
     carouselTrack.appendChild(slide);
 
+    // Crea el punto indicador para este slide
     const dot = document.createElement('div');
     dot.className = 'dot' + (i===0 ? ' active' : '');
-    dot.onclick = () => { stopAuto(); goTo(i); };
+    dot.onclick = () => { stopAuto(); goTo(i); }; // Asigna el evento de clic
     carouselDots.appendChild(dot);
   });
 
-  updateCarouselUI();
+  updateCarouselUI(); // Actualiza la UI (posición, contador, etc.)
 }
 
+// Función de ayuda para escapar caracteres HTML
 function escapeHtml(str){
   return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 }
 
+// Actualiza la interfaz del carrusel (posición, puntos, progreso)
 function updateCarouselUI(){
-  const x = -slideIdx * 100;
+  const x = -slideIdx * 100; // Calcula la posición X para el 'track'
   carouselTrack.style.transform = `translateX(${x}%)`;
+  // Actualiza el texto del contador (ej: "Paso 2/8")
   carouselCounter.textContent = `Paso ${activeSlides.length ? (slideIdx+1) : 0}/${activeSlides.length}`;
+  // Calcula y actualiza el ancho de la barra de progreso
   const percent = activeSlides.length ? ((slideIdx+1)/activeSlides.length)*100 : 0;
   carouselProgress.style.width = `${percent}%`;
+  // Actualiza qué punto indicador está 'activo'
   Array.from(carouselDots.children).forEach((d,i)=> d.classList.toggle('active', i===slideIdx));
 }
 
+// Funciones de navegación del carrusel
 function nextSlide(){ if (!activeSlides.length) return; slideIdx = (slideIdx + 1) % activeSlides.length; updateCarouselUI(); }
 function prevSlide(){ if (!activeSlides.length) return; slideIdx = (slideIdx - 1 + activeSlides.length) % activeSlides.length; updateCarouselUI(); }
 function goTo(i){ if (!activeSlides.length) return; slideIdx = Math.max(0, Math.min(activeSlides.length-1, i)); updateCarouselUI(); }
 
+// Inicia el modo 'Play' (autodesplazamiento)
 function playLoop(){
-  if (autoTimer || !activeSlides.length) return;
+  if (autoTimer || !activeSlides.length) return; // No hacer nada si ya está en play
   btnPlay.textContent = 'Pausar';
-  autoTimer = setInterval(() => { nextSlide(); }, 1800); 
+  autoTimer = setInterval(() => { nextSlide(); }, 1800); // Cambia de slide cada 1.8 segundos
 }
+// Detiene el modo 'Play'
 function stopAuto(){
   if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
   btnPlay.textContent = 'Play';
 }
+// Asignación de eventos a los botones de navegación
 btnPrev.onclick = ()=>{ stopAuto(); prevSlide(); };
 btnNext.onclick = ()=>{ stopAuto(); nextSlide(); };
 btnPlay.onclick = ()=>{ autoTimer ? stopAuto() : playLoop(); };
 
+/* ======== Event Listener del Formulario (Submit) ======== */
 form.addEventListener('submit', async (ev) => {
-  ev.preventDefault();
+  ev.preventDefault(); // Evita que la página se recargue
+  
+  // 1. Limpiar estado anterior
   statusEl.classList.remove('status-success','status-error');
   statusEl.textContent = '';
   summaryWrap.style.display = 'none';
@@ -332,35 +375,44 @@ form.addEventListener('submit', async (ev) => {
   expiresLabel.textContent = 'Sesión termina en: --:--';
   stopAuto();
 
-  // validate MTU & file
+  // 2. Validar entradas (MTU y tamaño de archivo)
   const mtuEl = document.getElementById('mtu');
   let mtu = parseInt(mtuEl.value || '50', 10) || 50;
-  mtu = Math.max(MIN_MTU, Math.min(MAX_MTU, mtu));
+  mtu = Math.max(MIN_MTU, Math.min(MAX_MTU, mtu)); // Asegura que MTU esté en el rango
   mtuEl.value = mtu;
 
   const file = document.getElementById('file').files[0];
   if (file && file.size > MAX_UPLOAD_BYTES){
     statusEl.classList.add('status-error');
     statusEl.textContent = `Error: Archivo demasiado grande (${(file.size/(1024*1024)).toFixed(1)} MB)`;
-    return;
+    return; // Detiene el envío
   }
 
-  const fd = new FormData(form);
+  // 3. Enviar datos al servidor
+  const fd = new FormData(form); // Crea un objeto FormData con los datos del formulario
   try{
+    statusEl.textContent = 'Procesando...'; // Mensaje temporal
+    // Realiza la petición POST a /process
     const res = await fetch('/process', { method: 'POST', body: fd });
-    const text = await res.text();
+    const text = await res.text(); // Lee la respuesta como texto
     let json = null;
-    try { json = JSON.parse(text); } catch(e) { throw new Error(`Respuesta no JSON: HTTP ${res.status}`); }
+    try { json = JSON.parse(text); } catch(e) { throw new Error(`Respuesta no JSON: HTTP ${res.status}`); } // Intenta parsear como JSON
+    
+    // Si la respuesta no fue exitosa (ej: 4xx, 5xx), lanza un error
     if (!res.ok) throw new Error(json?.detail ? (typeof json.detail === 'string' ? json.detail : JSON.stringify(json.detail)) : `HTTP ${res.status}`);
-    onProcessComplete(json);
+    
+    // 4. Procesar respuesta exitosa
+    onProcessComplete(json); // Llama a la función principal para mostrar resultados
     statusEl.classList.remove('status-error');
     statusEl.classList.add('status-success');
     statusEl.textContent = 'Listo ✔';
+    // Mantiene el mensaje de "Listo" por 0.9 segundos
     setTimeout(() => {
       statusEl.classList.remove('status-success');
-      statusEl.innerHTML = `Listo ✔`;
+      statusEl.innerHTML = `Listo ✔`; // Lo deja fijo pero sin la animación
     }, 900); 
   }catch(err){
+    // 5. Manejar errores de la petición
     statusEl.classList.remove('status-success');
     statusEl.classList.add('status-error');
     statusEl.textContent = `${String(err)}`;
@@ -368,81 +420,91 @@ form.addEventListener('submit', async (ev) => {
   }
 });
 
-/* ======== onProcessComplete ======== */
+/* ======== onProcessComplete (Maneja la respuesta exitosa del servidor) ======== */
 function onProcessComplete(resp){
-  serverResponse = resp;
-  pidLabel.textContent = resp.pid || '';
-  startExpireCountdown(resp.expires_in || 0);
+  // 1. Almacena la respuesta y actualiza la UI
+  serverResponse = resp; // Guarda la respuesta globalmente
+  pidLabel.textContent = resp.pid || ''; // Muestra el Process ID
+  startExpireCountdown(resp.expires_in || 0); // Inicia el contador de expiración
 
+  // 2. Divide los pasos en Encapsulación y Desencapsulación
   const steps = Array.isArray(resp.steps) ? resp.steps.slice() : [];
+  // Busca el primer paso que contenga "recepción" para saber dónde dividir
   let splitIndex = steps.findIndex(s => (s.title || '').toLowerCase().includes('recepción') || (s.title || '').toLowerCase().includes('recepcion') );
-  if (splitIndex === -1) splitIndex = Math.ceil(steps.length / 2);
-  encapsulationSteps = steps.slice(0, splitIndex);
-  decapsulationSteps = steps.slice(splitIndex);
+  if (splitIndex === -1) splitIndex = Math.ceil(steps.length / 2); // Si no lo encuentra, divide por la mitad
+  
+  encapsulationSteps = steps.slice(0, splitIndex); // Pasos de envío
+  decapsulationSteps = steps.slice(splitIndex);   // Pasos de recepción
 
+  // 3. Muestra las secciones ocultas
   summaryWrap.style.display = '';
   sep1.style.display = 'block';
   sep2.style.display = 'block';
+  
+  // 4. Habilita el botón de resumen
   btnToggleSummary.disabled = false;
   btnToggleSummary.textContent = 'Mostrar resumen';
   summaryContent.textContent = 'Resumen oculto. Presiona "Mostrar resumen".';
+  
+  // 5. Muestra el carrusel con los pasos de encapsulación por defecto
   buildCarouselFromSteps(encapsulationSteps);
 }
 
+// Función para marcar el botón activo (Origen o Destino)
 function setActiveButton(isOrigen){
-  if (isOrigen){
+  // Corrección: Solo gestionamos el botón Origen
+  if (isOrigen) {
     btnOrigen.classList.add('active'); btnOrigen.classList.remove('ghost');
-    btnDestino.classList.remove('active'); btnDestino.classList.add('ghost');
   } else {
-    btnDestino.classList.add('active'); btnDestino.classList.remove('ghost');
     btnOrigen.classList.remove('active'); btnOrigen.classList.add('ghost');
   }
 }
 
+// Clic en el botón "Computadora Origen"
 btnOrigen.onclick = () => {
   if (!encapsulationSteps.length){
     statusEl.classList.add('status-error');
     statusEl.textContent = 'Error: Procese el payload primero para ver pasos de Origen.';
     return;
   }
-  setActiveButton(true);
-  buildCarouselFromSteps(encapsulationSteps);
-  playLoop();
+  setActiveButton(true); // Marca el botón como activo
+  buildCarouselFromSteps(encapsulationSteps); // Carga los pasos de encapsulación
+  playLoop(); // Inicia el 'Play'
 };
 
-btnDestino.onclick = () => {
-  if (!decapsulationSteps.length){
-    statusEl.classList.add('status-error');
-    statusEl.textContent = 'Error: Procese el payload primero para ver pasos de Destino.';
-    return;
-  }
-  setActiveButton(false);
-  buildCarouselFromSteps(decapsulationSteps);
-  playLoop();
-};
-
+/* ======== Lógica del Resumen (Toggle) ======== */
 btnToggleSummary.onclick = () => {
+  // 1. Validar que la respuesta del servidor exista
   if (!serverResponse || !serverResponse.summary) return;
+  
+  // 2. Comprobar si el resumen ya se está mostrando (estado '1')
   if (btnToggleSummary.dataset.shown === '1'){
+    // Si se muestra, ocultarlo
     summaryContent.innerHTML = 'Resumen oculto. Presiona "Mostrar resumen".';
     btnToggleSummary.dataset.shown = '0';
     btnToggleSummary.textContent = 'Mostrar resumen';
     return;
   }
+  
+  // 3. Si está oculto, mostrarlo
   const s = serverResponse.summary || {};
-  summaryContent.innerHTML = buildFormattedSummaryHTML(s);
-  btnToggleSummary.dataset.shown = '1';
+  summaryContent.innerHTML = buildFormattedSummaryHTML(s); // Genera el HTML del resumen
+  btnToggleSummary.dataset.shown = '1'; // Marca el estado como 'mostrado'
   btnToggleSummary.textContent = 'Ocultar resumen';
 };
 
+// Construye el HTML formateado para la caja de resumen
 function buildFormattedSummaryHTML(s){
   try {
-    const parts = [];
+    const parts = []; // Array para unir el HTML
+    
+    // --- Sección Origen ---
     parts.push(`<div class="layer-card"><h5>📥 COMPUTADORA ORIGEN (${escapeHtml(s.Network?.src_ip || 'N/A')})</h5>`);
     parts.push(`<div><strong>Capa No.7 = Aplicación:</strong> ${escapeHtml(s.Application?.ui || '')}</div>`);
     parts.push(`<div><strong>Capa No.6 = Presentación:</strong> tipo: ${escapeHtml(s.Presentation?.type || '')}, tamaño: ${escapeHtml(String(s.Presentation?.raw_bytes_len || 0))} bytes</div>`);
     parts.push(`<div><strong>Capa No.5 = Sesión:</strong> ${escapeHtml(s.Session?.info || '')}</div>`);
     parts.push(`<div><strong>Capa No.4 = Trasporte:</strong> ${escapeHtml(String(s.Transport?.fragments_count || 0))} segmentos, MTU: ${escapeHtml(String(s.Transport?.requested_mtu || ''))} bytes</div>`);
+    // Si hay info de fragmentos, la lista
     if (Array.isArray(s.Transport?.fragments_info)){
       parts.push('<ul style="margin:8px 0 0 18px;">' + s.Transport.fragments_info.map(f => `<li>${escapeHtml(f)}</li>`).join('') + '</ul>');
     }
@@ -451,6 +513,7 @@ function buildFormattedSummaryHTML(s){
     parts.push(`<div><strong>Capa No.1 = Física:</strong> ${escapeHtml((s.Physical?.logs && s.Physical.logs[0]) || '')}</div>`);
     parts.push('</div>');
 
+    // --- Sección Destino ---
     parts.push(`<div class="layer-card"><h5>📤 COMPUTADORA DESTINO (${escapeHtml(s.Receiver?.dst_ip || 'N/A')})</h5>`);
     parts.push(`<div><strong>Capa No.1 = Física:</strong> Tramas recibidas.</div>`);
     parts.push(`<div><strong>Capa No.2 = Enlace de datos:</strong> Tramas validadas (MAC: ${escapeHtml(s.Receiver?.dst_mac || '')}), cabecera quitada.</div>`);
@@ -461,39 +524,44 @@ function buildFormattedSummaryHTML(s){
     parts.push(`<div><strong>Capa No.7 = Aplicación:</strong> Datos entregados a la aplicación final.</div>`);
     parts.push('</div>');
 
-    return parts.join('');
+    return parts.join(''); // Devuelve todo el HTML como un string
   } catch(e){
-    console.error(e);
+    console.error(e); // En caso de error, muestra el JSON crudo
     return `<pre>${escapeHtml(JSON.stringify(s, null, 2))}</pre>`;
   }
 }
 
+// Inicia el contador de cuenta regresiva para la expiración de la sesión
 function startExpireCountdown(seconds){
-  if (expireTimer) clearInterval(expireTimer);
-  let rem = Math.max(0, parseInt(seconds || 0, 10));
+  if (expireTimer) clearInterval(expireTimer); // Limpia el timer anterior
+  let rem = Math.max(0, parseInt(seconds || 0, 10)); // Segundos restantes
   
   const tick = () => {
-    const m = Math.floor(rem / 60);
-    const s = rem % 60;
-    expiresLabel.textContent = `Sesión termina en: ${m}:${String(s).padStart(2,'0')}`;
+    const m = Math.floor(rem / 60); // Calcula minutos
+    const s = rem % 60; // Calcula segundos
+    expiresLabel.textContent = `Sesión termina en: ${m}:${String(s).padStart(2,'0')}`; // Actualiza la UI
     if (rem <= 0){ 
-      clearInterval(expireTimer); 
+      clearInterval(expireTimer); // Detiene el timer si llega a 0
       expireTimer = null; 
       expiresLabel.textContent = 'Sesión expirada'; 
     }
-    rem = Math.max(0, rem - 1);
+    rem = Math.max(0, rem - 1); // Resta un segundo
   };
-  tick();
-  expireTimer = setInterval(tick, 1000);
+  tick(); // Ejecuta el primer tick inmediatamente
+  expireTimer = setInterval(tick, 1000); // Repite cada segundo
 }
 
+/* ======== Lógica Táctil (Swipe) para el Carrusel ======== */
 let startX = null;
+// Al tocar la pantalla, guarda la posición X inicial
 carouselTrack.addEventListener('touchstart', e=> startX = e.touches[0].clientX);
+// Al soltar la pantalla, calcula el desplazamiento
 carouselTrack.addEventListener('touchend', e=>{
   if (startX===null) return;
-  const dx = e.changedTouches[0].clientX - startX;
-  if (Math.abs(dx) > 40){ dx < 0 ? nextSlide() : prevSlide(); }
-  startX = null;
+  const dx = e.changedTouches[0].clientX - startX; // Diferencia de X
+  // Si el desplazamiento es mayor a 40px, lo considera un 'swipe'
+  if (Math.abs(dx) > 40){ dx < 0 ? nextSlide() : prevSlide(); } // Swipe izquierda o derecha
+  startX = null; // Resetea la posición inicial
 });
 </script>
 </body>
